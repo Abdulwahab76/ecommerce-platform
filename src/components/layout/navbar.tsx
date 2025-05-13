@@ -1,6 +1,5 @@
-import { CircleUser, Search, ShoppingCart } from 'lucide-react';
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { AlignJustify, CircleUser, Search, ShoppingCart, X } from 'lucide-react';
+import { useState } from 'react';
 
 const NAV_LINKS = [
     { label: 'Shop', href: '/shop' },
@@ -11,29 +10,43 @@ const NAV_LINKS = [
 
 const Navbar = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [toggleSearch, setToggleSearch] = useState(false);
 
     return (
-        <nav className="bg-white  px-10">
-            <div className="flex w-full h-24 justify-between items-center p-4 ">
+        <nav className="bg-white  px-2 md:px-10">
+            <div className="flex w-full h-24 justify-between items-center px-4 ">
                 {/* Logo */}
-                <div>
-                    <a href="/"> <h1 className="font-bold text-2xl">SHOP.CO</h1></a>
+                <div className='flex items-center gap-x-2'>
+                    <button
+                        className="lg:hidden flex items-center ml-4"
+                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                    >
+                        {!isMobileMenuOpen ? <AlignJustify /> : <X />}
+                    </button>
 
+                    <a href="/dashboard">
+                        <h1 className="font-bold font-integral text-2xl">SHOP.CO</h1>
+                    </a>
                 </div>
+
                 {/* Desktop Links */}
-                <div className="hidden md:flex">
-                    <ul className="flex gap-5 text-lg">
-                        {NAV_LINKS.map((link) => (
-                            <li key={link.label}>
-                                <a href={link.href} className="hover:text-gray-600">
-                                    {link.label}
-                                </a>
-                            </li>
-                        ))}
-                    </ul>
+                <div className="hidden lg:flex gap-5 text-lg">
+                    {NAV_LINKS.map((link) => (
+                        <a
+                            key={link.label}
+                            href={link.href}
+                            className="hover:text-gray-600 whitespace-nowrap"
+                        >
+                            {link.label}
+                        </a>
+                    ))}
                 </div>
+
                 {/* Search Bar */}
-                <div className="hidden md:flex w-full max-w-3xl">
+                <div
+                    className={` ${toggleSearch ? 'flex w-10/12 *:rounded-none' : 'hidden'}  w-6/12 ${!toggleSearch ? 'lg:flex' : ''}   ${toggleSearch ? 'absolute top-26 max-w-full px-4' : ''}
+  `}
+                >
                     <div className="flex bg-gray-100 w-full h-12 items-center gap-x-2 px-3 rounded-full">
                         <Search className="text-gray-500" />
                         <input
@@ -44,49 +57,33 @@ const Navbar = () => {
                     </div>
                 </div>
 
+
                 {/* Icons */}
                 <div className="flex gap-x-3">
-                    <ShoppingCart />
-                    <CircleUser />
+                    <Search className=" md:hidden block" onClick={() => setToggleSearch(!toggleSearch)} />
+                    <ShoppingCart className="cursor-pointer" />
+                    <CircleUser className="cursor-pointer" />
                 </div>
+                {/* Mobile Menu */}
+                {isMobileMenuOpen && (
+                    <div className="absolute top-24 left-0 w-full bg-white shadow-lg lg:hidden">
+                        <ul className="flex flex-col items-start p-4 space-y-3">
+                            {NAV_LINKS.map((link) => (
+                                <li key={link.label} className="w-full">
+                                    <a
+                                        href={link.href}
+                                        className="block w-full p-2 text-lg hover:bg-gray-100"
+                                    >
+                                        {link.label}
+                                    </a>
+                                </li>
+                            ))}
+                        </ul>
 
-                {/* Mobile Menu Button */}
-                <button
-                    className="md:hidden flex items-center"
-                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                >
-                    <div className="space-y-1">
-                        <span className="block w-6 h-0.5 bg-black"></span>
-                        <span className="block w-6 h-0.5 bg-black"></span>
-                        <span className="block w-6 h-0.5 bg-black"></span>
                     </div>
-                </button>
+                )}
             </div>
 
-            {/* Mobile Menu */}
-            {isMobileMenuOpen && (
-                <div className="md:hidden bg-white shadow-md">
-                    <ul className="flex flex-col gap-4 p-4">
-                        {NAV_LINKS.map((link) => (
-                            <li key={link.label}>
-                                <a href={link.href} className="block text-lg hover:text-gray-600">
-                                    {link.label}
-                                </a>
-                            </li>
-                        ))}
-                    </ul>
-                    <div className="p-4">
-                        <div className="flex bg-gray-100 w-full h-12 items-center gap-x-2 px-3 rounded-full">
-                            <Search className="text-gray-500" />
-                            <input
-                                type="text"
-                                placeholder="Search everything"
-                                className="outline-none bg-transparent w-full"
-                            />
-                        </div>
-                    </div>
-                </div>
-            )}
         </nav>
     );
 };
