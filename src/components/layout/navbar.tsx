@@ -1,5 +1,9 @@
 import { AlignJustify, CircleUser, Search, ShoppingCart, X } from 'lucide-react';
 import { useState } from 'react';
+import { signOut } from "firebase/auth";
+import { auth } from "../../services/firebase"; // Adjust the import path as necessary
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext"; // Import the context
 
 const NAV_LINKS = [
     { label: 'Shop', href: '/shop' },
@@ -11,11 +15,18 @@ const NAV_LINKS = [
 const Navbar = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [toggleSearch, setToggleSearch] = useState(false);
+    const navigate = useNavigate();
+    const { currentUser, isAdmin } = useAuth();  
+ 
+    const handleLogout = async () => {
+        await signOut(auth);
+        navigate("/login");
+    };
 
     return (
-        <nav className="bg-white  px-2 md:px-10">
-            <div className="flex w-full h-24 justify-between items-center px-4 ">
-                {/* Logo */}
+        <nav className="bg-white px-2 md:px-10">
+            <div className="flex w-full h-24 justify-between items-center px-4">
+                {/* Logo & Mobile Menu Toggle */}
                 <div className='flex items-center gap-x-2'>
                     <button
                         className="lg:hidden flex items-center ml-4"
@@ -24,7 +35,7 @@ const Navbar = () => {
                         {!isMobileMenuOpen ? <AlignJustify /> : <X />}
                     </button>
 
-                    <a href="/dashboard">
+                    <a href="/">
                         <h1 className="font-bold font-integral text-2xl">SHOP.CO</h1>
                     </a>
                 </div>
@@ -44,8 +55,9 @@ const Navbar = () => {
 
                 {/* Search Bar */}
                 <div
-                    className={` ${toggleSearch ? 'flex w-10/12 *:rounded-none' : 'hidden'}  w-6/12 ${!toggleSearch ? 'lg:flex' : ''}   ${toggleSearch ? 'absolute top-26 max-w-full px-4' : ''}
-  `}
+                    className={`${toggleSearch ? 'flex w-10/12' : 'hidden'} 
+                        w-6/12 ${!toggleSearch ? 'lg:flex' : ''} 
+                        ${toggleSearch ? 'absolute top-26 max-w-full px-4' : ''}`}
                 >
                     <div className="flex bg-gray-100 w-full h-12 items-center gap-x-2 px-3 rounded-full">
                         <Search className="text-gray-500" />
@@ -57,13 +69,54 @@ const Navbar = () => {
                     </div>
                 </div>
 
-
-                {/* Icons */}
-                <div className="flex gap-x-3">
-                    <Search className=" md:hidden block" onClick={() => setToggleSearch(!toggleSearch)} />
+                {/* Icons and Authentication Links */}
+                <div className="flex gap-x-3 items-center">
+                    <Search className="md:hidden block" onClick={() => setToggleSearch(!toggleSearch)} />
                     <ShoppingCart className="cursor-pointer" />
-                    <CircleUser className="cursor-pointer" />
+
+                    {/* 🔓 Authentication Buttons */}
+                    {currentUser ? (
+                        <>
+                            {isAdmin ? (
+                                <button
+                                    className="bg-blue-500 text-white px-3 py-1 rounded-md"
+                                    onClick={() => navigate("/admin")}
+                                >
+                                    Admin Dashboard
+                                </button>
+                            ) : (
+                                <button
+                                    className="bg-green-500 text-white px-3 py-1 rounded-md"
+                                    onClick={() => navigate("/user")}
+                                >
+                                    My Account
+                                </button>
+                            )}
+                            <button
+                                onClick={handleLogout}
+                                className="bg-red-500 text-white px-3 py-1 rounded-md ml-2"
+                            >
+                                Logout
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <button
+                                className="bg-primary text-white px-4 py-2 rounded-md"
+                                onClick={() => navigate("/login")}
+                            >
+                                Login
+                            </button>
+                            <button
+                                className="bg-gray-700 text-white px-4 py-2 rounded-md ml-2"
+                                onClick={() => navigate("/register")}
+                            >
+                                Register
+                            </button>
+                        </>
+                    )}
                 </div>
+
                 {/* Mobile Menu */}
                 {isMobileMenuOpen && (
                     <div className="absolute top-24 left-0 w-full bg-white shadow-lg lg:hidden">
@@ -78,12 +131,20 @@ const Navbar = () => {
                                     </a>
                                 </li>
                             ))}
+                            {currentUser && (
+                                <li className="w-full">
+                                    <button
+                                        onClick={handleLogout}
+                                        className="w-full p-2 text-lg hover:bg-gray-100 text-left"
+                                    >
+                                        Logout
+                                    </button>
+                                </li>
+                            )}
                         </ul>
-
                     </div>
                 )}
             </div>
-
         </nav>
     );
 };

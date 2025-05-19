@@ -1,35 +1,41 @@
+// src/context/AuthContext.tsx
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { auth } from "../services/firebase";
 import { onAuthStateChanged, type User } from "firebase/auth";
+import { auth, ADMIN_UID } from "../services/firebase";
 
-interface AuthContextProps {
+type AuthContextType = {
     currentUser: User | null;
-    loading: boolean;
-}
+    isAdmin: boolean;
+};
 
-const AuthContext = createContext<AuthContextProps>({
+const AuthContext = createContext<AuthContextType>({
     currentUser: null,
-    loading: true,
+    isAdmin: false,
 });
+
+export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [currentUser, setCurrentUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
-            setCurrentUser(user);
-            setLoading(false);
+            if (user) {
+                setCurrentUser(user);
+                setIsAdmin(user.uid === ADMIN_UID); // 🔐 Check if UID matches admin
+            } else {
+                setCurrentUser(null);
+                setIsAdmin(false);
+            }
         });
 
         return () => unsubscribe();
     }, []);
 
     return (
-        <AuthContext.Provider value={{ currentUser, loading }}>
-            {!loading && children}
+        <AuthContext.Provider value={{ currentUser, isAdmin }}>
+            {children}
         </AuthContext.Provider>
     );
 };
-
-export const useAuth = () => useContext(AuthContext);
