@@ -1,10 +1,8 @@
-// src/components/FeaturedProducts.tsx
-import { useEffect, useState } from "react";
 // import { fetchFeaturedProducts } from "../services/productService";
+import type { ProductType } from "../data/mockProducts";
 import ProductCard from "./ProductCard";
-import { mockProducts } from "../data/mockProducts";
 
-const FeaturedProducts = ({ type }: { type: string }) => {
+const FeaturedProducts = ({ type, data }: { type: string, data: ProductType[] }) => {
     // const [products, setProducts] = useState<any[]>([]);
 
     // useEffect(() => {
@@ -19,7 +17,7 @@ const FeaturedProducts = ({ type }: { type: string }) => {
         <div className="flex justify-center flex-col items-center py-10 w-full">
             <h2 className="text-2xl font-semibold mb-4 font-integral">{type}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {mockProducts.map((product) => (
+                {data.map((product: ProductType) => (
                     <ProductCard key={product.id} {...product} />
                 ))}
             </div>

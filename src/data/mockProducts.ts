@@ -1,5 +1,13 @@
 // src/data/mockProducts.ts
-export const mockProducts = [
+export type ProductType = {
+    id: string;
+    name: string;
+    price: number;
+    category: string;
+    image: string;
+};
+
+export const mockProducts: ProductType[] = [
     // 👚 Shirts
     {
         id: "1",
