@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { browserSessionPersistence, getAuth, setPersistence } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
@@ -12,9 +12,18 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-const app = initializeApp(firebaseConfig);
 
+const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+// Set persistence to "session"
+setPersistence(auth, browserSessionPersistence)
+  .then(() => {
+    console.log("Session persistence set.");
+  })
+  .catch((error) => {
+    console.error("Error setting session persistence:", error);
+  });
+
 export const db = getFirestore(app);
 export const storage = getStorage(app);
-export const ADMIN_UID = import.meta.env.ADMIN_UID;
+export const ADMIN_UID = "Dcf6kR9c0Ma0InH5fMnPyVlUpCp2";
