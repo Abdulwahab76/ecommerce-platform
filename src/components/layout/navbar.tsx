@@ -1,9 +1,9 @@
 import { AlignJustify, CircleUser, Search, ShoppingCart, X } from 'lucide-react';
 import { useState } from 'react';
 import { signOut } from "firebase/auth";
-import { auth } from "../../services/firebase"; // Adjust the import path as necessary
+import { auth } from "../../services/firebase";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext"; // Import the context
+import { useAuth } from "../../context/AuthContext";
 
 const NAV_LINKS = [
     { label: 'Shop', href: '/shop' },
@@ -16,13 +16,15 @@ const Navbar = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [toggleSearch, setToggleSearch] = useState(false);
     const navigate = useNavigate();
-    const { currentUser, isAdmin } = useAuth();  
- 
+
+    const { currentUser, isAdmin } = useAuth();
+    const [toggleDropDown, setToggleDropDown] = useState(false)
     const handleLogout = async () => {
         await signOut(auth);
         navigate("/login");
     };
-
+    const routes = ['/admin', '/user', '/login', '/register']
+    const specificRoute = routes.find(route => window.location.pathname.includes(route));
     return (
         <nav className="bg-white px-2 md:px-10">
             <div className="flex w-full h-24 justify-between items-center px-4">
@@ -41,7 +43,7 @@ const Navbar = () => {
                 </div>
 
                 {/* Desktop Links */}
-                <div className="hidden lg:flex gap-5 text-lg">
+                {!specificRoute && <div className="hidden lg:flex gap-5 text-lg">
                     {NAV_LINKS.map((link) => (
                         <a
                             key={link.label}
@@ -51,15 +53,15 @@ const Navbar = () => {
                             {link.label}
                         </a>
                     ))}
-                </div>
+                </div>}
 
                 {/* Search Bar */}
-                <div
+                {!specificRoute && <div
                     className={`${toggleSearch ? 'flex w-10/12' : 'hidden'} 
                         w-6/12 ${!toggleSearch ? 'lg:flex' : ''} 
                         ${toggleSearch ? 'absolute top-26 max-w-full px-4' : ''}`}
                 >
-                    <div className="flex bg-gray-100 w-full h-12 items-center gap-x-2 px-3 rounded-full">
+                    <div className="flex bg-white md:bg-gray-100 w-full h-12 items-center gap-x-2 px-3 rounded-full">
                         <Search className="text-gray-500" />
                         <input
                             type="text"
@@ -67,48 +69,55 @@ const Navbar = () => {
                             className="outline-none bg-transparent w-full"
                         />
                     </div>
-                </div>
+                </div>}
 
                 {/* Icons and Authentication Links */}
-                <div className="flex gap-x-3 items-center">
+                <div className="flex gap-x-2 items-center">
                     <Search className="md:hidden block" onClick={() => setToggleSearch(!toggleSearch)} />
                     <ShoppingCart className="cursor-pointer" />
 
                     {/* 🔓 Authentication Buttons */}
                     {currentUser ? (
-                        <>
-                            {isAdmin ? (
-                                <button
-                                    className="bg-blue-500 text-white px-3 py-1 rounded-md"
-                                    onClick={() => navigate("/admin")}
-                                >
-                                    Admin Dashboard
-                                </button>
-                            ) : (
-                                <button
-                                    className="bg-green-500 text-white px-3 py-1 rounded-md"
-                                    onClick={() => navigate("/user")}
-                                >
-                                    My Account
-                                </button>
-                            )}
+                        <div className="relative">
                             <button
-                                onClick={handleLogout}
-                                className="bg-red-500 text-white px-3 py-1 rounded-md ml-2"
-                            >
-                                Logout
+                                className="cursor-pointer px-3 py-1 rounded-md"
+                                onClick={() => setToggleDropDown(!toggleDropDown)}>
+                                <CircleUser />
                             </button>
-                        </>
+                            {toggleDropDown && (
+                                <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg">
+                                    <ul className="py-1">
+
+                                        <li>
+                                            <button
+                                                className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                                                onClick={() => { navigate(isAdmin ? "/admin" : "/user"); setToggleDropDown(false); }}
+                                            >
+                                                Profile
+                                            </button>
+                                        </li>
+                                        <li>
+                                            <button
+                                                className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                                                onClick={handleLogout}
+                                            >
+                                                Logout
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </div>
+                            )}
+                        </div>
                     ) : (
                         <>
                             <button
-                                className="bg-primary text-white px-4 py-2 rounded-md"
+                                className="bg-white shadow cursor-pointer text-black px-4 py-2 rounded-md"
                                 onClick={() => navigate("/login")}
                             >
                                 Login
                             </button>
                             <button
-                                className="bg-gray-700 text-white px-4 py-2 rounded-md ml-2"
+                                className="bg-gray-700 text-white px-4 py-2 cursor-pointerP rounded-md ml-2"
                                 onClick={() => navigate("/register")}
                             >
                                 Register
@@ -131,16 +140,7 @@ const Navbar = () => {
                                     </a>
                                 </li>
                             ))}
-                            {currentUser && (
-                                <li className="w-full">
-                                    <button
-                                        onClick={handleLogout}
-                                        className="w-full p-2 text-lg hover:bg-gray-100 text-left"
-                                    >
-                                        Logout
-                                    </button>
-                                </li>
-                            )}
+
                         </ul>
                     </div>
                 )}
