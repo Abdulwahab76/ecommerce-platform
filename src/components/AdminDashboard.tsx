@@ -5,7 +5,6 @@ import Header from "./dashboardLayout/header";
 import AdminProfileCard from "./dashboardLayout/AdminProfileCard";
 import { useAuth } from "../context/AuthContext";
 import { isAdmin } from "../services/authService";
-
 const AdminDashboard: React.FC = () => {
     const { user } = useAuth();
     const [profile, setProfile] = useState<any>(null);

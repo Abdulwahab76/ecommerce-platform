@@ -1,6 +1,5 @@
 // src/components/ProductCard.tsx
 import React from "react";
-import ProductGrid from "./ProductGrid";
 
 type ProductCardProps = {
     id: string;
@@ -9,7 +8,7 @@ type ProductCardProps = {
     image: string;
 };
 
-const ProductCard: React.FC<ProductCardProps> = ({ id, name, price, image }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ name, price, image }) => {
     return (
         <>
             <div className="rounded-lg p-10 hover:shadow-lg transition-shadow duration-300 ease-in-out  cursor-pointer  ">

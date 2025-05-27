@@ -1,15 +1,6 @@
 import { useEffect, useState } from "react";
 import { fetchProducts } from "../services/contentful";
 
-type Product = {
-    id: string;
-    name: string;
-    slug: string;
-    price: number;
-    image: string;
-    category: string;
-    description?: string;
-};
 
 const ProductGrid = () => {
     const [products, setProducts] = useState<any[]>([]);
