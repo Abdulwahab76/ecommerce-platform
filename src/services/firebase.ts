@@ -26,4 +26,3 @@ setPersistence(auth, browserSessionPersistence)
 
 export const db = getFirestore(app);
 export const storage = getStorage(app);
-export const ADMIN_UID = "Dcf6kR9c0Ma0InH5fMnPyVlUpCp2";
