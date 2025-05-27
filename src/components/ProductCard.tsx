@@ -1,4 +1,3 @@
-// src/components/ProductCard.tsx
 import React from "react";
 
 type ProductCardProps = {
@@ -18,7 +17,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ name, price, image }) => {
                 <h2 className="mt-2 text-lg font-semibold">{name}</h2>
                 <p className="text-gray-500">${price}</p>
             </div>
-            {/* <ProductGrid /> */}
         </>
     );
 };
