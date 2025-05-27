@@ -17,14 +17,16 @@ const Navbar = () => {
     const [toggleSearch, setToggleSearch] = useState(false);
     const navigate = useNavigate();
 
-    const { currentUser, isAdmin } = useAuth();
+    const { user, isAdmin } = useAuth();
     const [toggleDropDown, setToggleDropDown] = useState(false)
     const handleLogout = async () => {
         await signOut(auth);
         navigate("/login");
     };
-    const routes = ['/admin', '/user', '/login', '/register']
+    const routes = ['/admin', '/user', '/login', '/register', 'verify-email']
     const specificRoute = routes.find(route => window.location.pathname.includes(route));
+    console.log(user, 'log');
+
     return (
         <nav className="bg-white px-2 md:px-10">
             <div className="flex w-full h-24 justify-between items-center px-4">
@@ -40,6 +42,7 @@ const Navbar = () => {
                     <a href="/">
                         <h1 className="font-bold font-integral text-2xl">SHOP.CO</h1>
                     </a>
+
                 </div>
 
                 {/* Desktop Links */}
@@ -77,7 +80,7 @@ const Navbar = () => {
                     <ShoppingCart className="cursor-pointer" />
 
                     {/* 🔓 Authentication Buttons */}
-                    {currentUser ? (
+                    {user ? (
                         <div className="relative">
                             <button
                                 className="cursor-pointer px-3 py-1 rounded-md"

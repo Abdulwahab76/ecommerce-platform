@@ -4,20 +4,20 @@ import Sidebar from "./dashboardLayout/Sidebar";
 import Header from "./dashboardLayout/header";
 import AdminProfileCard from "./dashboardLayout/AdminProfileCard";
 import { useAuth } from "../context/AuthContext";
-import { ADMIN_UID } from "../services/firebase";
+import { isAdmin } from "../services/authService";
 
 const AdminDashboard: React.FC = () => {
-    const { currentUser } = useAuth();
+    const { user } = useAuth();
     const [profile, setProfile] = useState<any>(null);
 
     useEffect(() => {
         const loadProfile = async () => {
-            if (currentUser?.uid == ADMIN_UID) {
-                setProfile(currentUser);
+            if (isAdmin(user?.email)) {
+                setProfile(user);
             }
         };
         loadProfile();
-    }, [currentUser]);
+    }, [user]);
 
     return (
         <div className="flex h-screen bg-gray-100">

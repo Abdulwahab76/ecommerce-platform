@@ -6,37 +6,51 @@ import { useAuth } from "../context/AuthContext";
 import AdminDashboard from "../components/AdminDashboard";
 import UserDashboard from "../components/UserDashboard";
 import ProtectedRoute from "../components/ProtectedRoute";
+import VerifyEmail from "../components/VerifyEmail";
 
 const AppRoutes: React.FC = () => {
-    const { currentUser, isAdmin } = useAuth();
+    const { user, isAdmin } = useAuth();
 
     return (
-
         <Routes>
+            {/* Public Routes */}
             <Route path="/" element={<Home />} />
             <Route
                 path="/login"
                 element={
-                    !currentUser ? (
+                    !user ? (
                         <Login />
                     ) : isAdmin ? (
-                        <Navigate to="/admin" />
+                        <Navigate to="/admin" replace />
                     ) : (
-                        <Navigate to="/user" />
+                        <Navigate to="/user" replace />
                     )
                 }
             />
-            <Route path="/register" element={<ProtectedRoute>
-                <Register />
-            </ProtectedRoute>} />
-            {/* 🔐 Admin Route Protection */}
-            <Route path="/admin" element={<ProtectedRoute>
-                <AdminDashboard />
-            </ProtectedRoute>} />
-            {/* 🔐 User Route - Only accessible if not admin */}
-            <Route path="/user" element={<ProtectedRoute> <UserDashboard /></ProtectedRoute>} />
-        </Routes>
+            <Route
+                path="/register"
+                element={!user ? <Register /> : <Navigate to="/" replace />}
+            />
 
+            {/* Protected Routes */}
+            <Route
+                path="/admin"
+                element={
+                    <ProtectedRoute adminOnly>
+                        <AdminDashboard />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/user"
+                element={
+                    <ProtectedRoute>
+                        <UserDashboard />
+                    </ProtectedRoute>
+                }
+            />
+            <Route path="/verify-email" element={<VerifyEmail />} />
+        </Routes>
     );
 };
 
