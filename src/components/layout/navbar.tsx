@@ -114,13 +114,13 @@ const Navbar = () => {
                     ) : (
                         <>
                             <button
-                                className="bg-white shadow cursor-pointer text-black px-4 py-2 rounded-md"
+                                className="bg-white shadow cursor-pointer text-black px-4 py-2 rounded-md md:block hidden"
                                 onClick={() => navigate("/login")}
                             >
                                 Login
                             </button>
                             <button
-                                className="bg-gray-700 text-white px-4 py-2 cursor-pointerP rounded-md ml-2"
+                                className="bg-gray-700 text-white px-4 py-2 cursor-pointerP rounded-md ml-2 md:block hidden"
                                 onClick={() => navigate("/register")}
                             >
                                 Register
@@ -142,8 +142,22 @@ const Navbar = () => {
                                         {link.label}
                                     </a>
                                 </li>
-                            ))}
 
+                            ))}
+                            <>
+                                <button
+                                    className="bg-white shadow cursor-pointer text-black px-4 py-2 rounded-md md:hidden block"
+                                    onClick={() => navigate("/login")}
+                                >
+                                    Login
+                                </button>
+                                <button
+                                    className="bg-gray-700 text-white px-4 py-2 cursor-pointerP rounded-md md:hidden block"
+                                    onClick={() => navigate("/register")}
+                                >
+                                    Register
+                                </button>
+                            </>
                         </ul>
                     </div>
                 )}

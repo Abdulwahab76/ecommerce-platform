@@ -5,11 +5,11 @@ import { mockProducts } from "../data/mockProducts";
 
 const Home = () => {
   return (
-    <div><Hero />
+    <div>
+      <Hero />
       <CompanyLogos />
       <FeaturedProducts type='New Arrivals' data={mockProducts.slice(0, 5)} />
       <FeaturedProducts type='Top Selling' data={mockProducts.slice(5, 10)} />
-
     </div>
   )
 }

@@ -6,7 +6,7 @@ const Hero = () => {
     const isMobile = useMediaQuery('(min-width: 650px)');
     return (
         <section
-            className="w-full h-dvw md:h-screen flex items-center bg-gray-200 bg-none "
+            className="w-full  h-screen flex items-center bg-gray-200 bg-none "
             style={{
                 backgroundImage: isMobile ? `url(${Bg})` : '',
                 backgroundSize: 'cover',
@@ -14,11 +14,11 @@ const Hero = () => {
             }}
         >
             <div className="container mx-auto flex flex-col gap-y-6 md:px-10 px-6 items-center md:items-start">
-                <header className="w-full lg:w-6/12  text-left">
-                    <h1 className=" text-5xl sm:text-6xl font-integral  uppercase">
+                <header className="w-full lg:w-6/12  text-center md:text-left">
+                    <h1 className="text-4xl  md:text-5xl   font-integral  uppercase">
                         Find Clothes That Match Your Style
                     </h1>
-                    <p className="mt-4 text-base md:text-lg text-gray-500">
+                    <p className="mt-4 text-sm md:text-lg text-gray-500">
                         Browse through our diverse range of meticulously crafted garments, designed to bring out your individuality and cater to your sense of style.
                     </p>
                 </header>
