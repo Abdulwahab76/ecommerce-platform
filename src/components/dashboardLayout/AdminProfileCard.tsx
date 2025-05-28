@@ -11,7 +11,7 @@ type AdminProfileCardProps = {
 const AdminProfileCard: React.FC<AdminProfileCardProps> = ({ profile }) => {
 
     return (
-        <div className="bg-white shadow-lg p-5 rounded-lg">
+        <div className="bg-white shadow-lg p-5 rounded-lg max-w-lg">
             <h2 className="text-xl font-bold mb-2">Admin Profile</h2>
             {profile ? (
                 <>
