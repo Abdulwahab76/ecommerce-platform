@@ -7,6 +7,8 @@ import AdminDashboard from "../components/AdminDashboard";
 import UserDashboard from "../components/UserDashboard";
 import ProtectedRoute from "../components/ProtectedRoute";
 import VerifyEmail from "../components/VerifyEmail";
+import ProductPage from "../pages/ProductPage";
+import CategoryPage from "../components/pages/Home/CategoryPage";
 
 const AppRoutes: React.FC = () => {
     const { user, isAdmin } = useAuth();
@@ -49,6 +51,8 @@ const AppRoutes: React.FC = () => {
                     </ProtectedRoute>
                 }
             />
+            <Route path="/product/:slug" element={<ProductPage />} />
+            <Route path="/category/:slug" element={<CategoryPage />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
         </Routes>
     );
