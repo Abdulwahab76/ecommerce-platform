@@ -29,7 +29,7 @@ const Navbar = () => {
 
     return (
         <nav className="bg-white px-2 md:px-10">
-            <div className="flex w-full h-24 justify-between items-center px-4">
+            <div className="flex w-full h-24 justify-between items-center px-4  gap-x-5">
                 {/* Logo & Mobile Menu Toggle */}
                 <div className='flex items-center gap-x-2'>
                     <button
