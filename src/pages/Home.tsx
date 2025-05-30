@@ -1,15 +1,16 @@
 import FeaturedProducts from '../components/FeaturedProducts';
+import Category from '../components/pages/Home/category';
 import CompanyLogos from '../components/pages/Home/company-logos';
 import Hero from '../components/pages/Home/hero';
-import { mockProducts } from "../data/mockProducts";
 
 const Home = () => {
   return (
     <div>
       <Hero />
       <CompanyLogos />
-      <FeaturedProducts type='New Arrivals' data={mockProducts.slice(0, 5)} />
-      <FeaturedProducts type='Top Selling' data={mockProducts.slice(5, 10)} />
+      <Category />
+      <FeaturedProducts type='New Arrivals' />
+      <FeaturedProducts type='Top Selling' />
     </div>
   )
 }
