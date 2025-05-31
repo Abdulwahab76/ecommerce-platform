@@ -2,13 +2,14 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { fetchProductBySlug } from "../services/contentful";
 import ZoomImage from "../components/zoomImage";
+import { useCartStore } from "../store/useCartStore";
 
 type Product = {
     id: string;
     name: string;
     price: number;
     image: string;
-    productimgs?: string[];
+    productGallery?: string[];
     description: string;
 };
 
@@ -18,6 +19,7 @@ const ProductPage: React.FC = () => {
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+    const addToCart = useCartStore((s) => s.addToCart);
 
     useEffect(() => {
         if (!slug) {
@@ -36,7 +38,6 @@ const ProductPage: React.FC = () => {
                 setLoading(false);
             });
     }, [slug]);
-    console.log(product, 'pro');
 
     if (loading) return <div className="p-10 text-center">Loading...</div>;
     if (error) return <div className="p-10 text-center text-red-500">{error}</div>;
@@ -48,7 +49,7 @@ const ProductPage: React.FC = () => {
                 <div className="flex flex-col md:flex-row gap-4">
                     {/* Thumbnail Column */}
                     <div className="flex md:flex-col gap-4 overflow-x-auto md:overflow-y-auto">
-                        {[product.image, ...(product.productimgs || [])].map((img, index) => (
+                        {[product.image, ...(product.productGallery || [])].map((img, index) => (
                             <img
                                 key={index}
                                 src={typeof img === "string" ? img : img.fields.file.url}
@@ -70,11 +71,15 @@ const ProductPage: React.FC = () => {
                 </div>
 
                 {/* Right: Product Info */}
-                <div>
-                    <h1 className="text-4xl font-bold capitalize mb-4">{product.name}</h1>
-                    <p className="text-gray-700 text-lg mb-6">{product.description}</p>
+                <div className="flex gap-y-4 flex-col  ">
+                    <h1 className="text-4xl font-bold capitalize  ">{product.name}</h1>
+                    <p className="text-gray-700 text-lg  ">Instock: {product.inStock}</p>
+                    <p className="text-gray-700 text-lg  ">Size: {product.sizes}</p>
+                    <p className="text-gray-700 text-lg  ">Features: {product.features}</p>
+                    <p className="text-gray-700   text-sm bg-gray-200 shadow-md cursor-pointer py-2  w-16 text-center rounded-lg ">{product.tags}</p>
+
                     <div className="text-3xl font-semibold text-black mb-6">${product.price}</div>
-                    <button className="px-6 py-3  cursor-pointer text-white rounded-lg !bg-gray-800  ">
+                    <button onClick={() => addToCart(product)} className="px-6 py-3  cursor-pointer text-white rounded-lg !bg-gray-800  ">
                         Add to Cart
                     </button>
                 </div>

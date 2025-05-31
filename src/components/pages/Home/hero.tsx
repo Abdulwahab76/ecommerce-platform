@@ -6,7 +6,7 @@ const Hero = () => {
     const isMobile = useMediaQuery('(min-width: 650px)');
     return (
         <section
-            className="w-full  h-screen flex items-center bg-gray-200 bg-none "
+            className="w-full  h-[calc(100vh_-_400px)] md:h-screen flex items-center bg-gray-200 bg-none "
             style={{
                 backgroundImage: isMobile ? `url(${Bg})` : '',
                 backgroundSize: 'cover',
@@ -22,7 +22,7 @@ const Hero = () => {
                         Browse through our diverse range of meticulously crafted garments, designed to bring out your individuality and cater to your sense of style.
                     </p>
                 </header>
-                <Button className="rounded-full h-12 md:h-14 py-3 text-sm w-full md:w-52 ">
+                <Button className="rounded-full h-12 md:h-14 py-3 text-sm w-52 ">
                     Shop Now
                 </Button>
                 <div className="flex flex-wrap gap-6  items-center justify-center text-center md:text-left md:justify-start">

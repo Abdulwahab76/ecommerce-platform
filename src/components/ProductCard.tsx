@@ -7,7 +7,7 @@ import type { ProductT } from "../services/contentful";
 const ProductCard: React.FC<ProductT> = ({ name, price, image, slug }) => {
     return (
         <>
-            <div className="rounded-lg p-10 hover:shadow-xl transition-shadow duration-300 ease-in-out  cursor-pointer shadow-lg  ">
+            <div className="rounded-lg bg-gray-50 p-10 hover:shadow-xl transition-shadow duration-300 ease-in-out  cursor-pointer shadow-lg  ">
                 <div className="  p-5">
                     <img src={image} alt={name} className="w-full h-48 object-cover rounded-lg" />
                 </div>
