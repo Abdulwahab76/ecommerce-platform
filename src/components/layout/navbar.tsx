@@ -4,6 +4,8 @@ import { signOut } from "firebase/auth";
 import { auth } from "../../services/firebase";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { CartIcon } from '../CartIcon';
+import { CartDrawer } from '../CartDrawer';
 
 const NAV_LINKS = [
     { label: 'Shop', href: '/shop' },
@@ -77,7 +79,7 @@ const Navbar = () => {
                 {/* Icons and Authentication Links */}
                 <div className="flex gap-x-2 items-center">
                     <Search className="md:hidden block" onClick={() => setToggleSearch(!toggleSearch)} />
-                    <ShoppingCart className="cursor-pointer" />
+                    <CartIcon />
 
                     {/* 🔓 Authentication Buttons */}
                     {user ? (
@@ -162,6 +164,8 @@ const Navbar = () => {
                     </div>
                 )}
             </div>
+            <CartDrawer />
+
         </nav>
     );
 };
