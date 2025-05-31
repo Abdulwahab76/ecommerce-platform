@@ -1,4 +1,4 @@
-import { AlignJustify, CircleUser, Search, ShoppingCart, X } from 'lucide-react';
+import { AlignJustify, CircleUser, Search, X } from 'lucide-react';
 import { useState } from 'react';
 import { signOut } from "firebase/auth";
 import { auth } from "../../services/firebase";
