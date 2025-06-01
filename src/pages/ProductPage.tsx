@@ -12,6 +12,8 @@ type Product = {
     image: string;
     productGallery?: string[];
     description: string;
+    discountPercent: number;
+    discountedPrice?: number;
 };
 
 const ProductPage: React.FC = () => {
@@ -22,6 +24,8 @@ const ProductPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const addToCart = useCartStore((s) => s.addToCart);
     const navigate = useNavigate();
+    const hasDiscount = product.price && product.discountPercent > 0;
+
     useEffect(() => {
         if (!slug) {
             setError("Product not found");
@@ -40,7 +44,7 @@ const ProductPage: React.FC = () => {
             });
     }, [slug]);
     const buyNow = (product: ProductT) => {
-        addToCart(product);
+        addToCart({ ...product, discountedPrice: product.discountedPrice ?? product.price });
         navigate('/checkout');
     };
 
@@ -92,7 +96,14 @@ const ProductPage: React.FC = () => {
                         <p className="text-gray-700 text-lg  ">Features: {product.features}</p>
                         <p className="text-gray-700   text-sm bg-gray-200 shadow-md cursor-pointer py-2  w-16 text-center rounded-lg ">{product.tags}</p>
 
-                        <div className="text-3xl font-semibold text-black mb-6">${product.price}</div>
+                        {hasDiscount ? (
+                            <>
+                                <span className="text-gray-800 font-bold text-2xl">${product.discountedPrice}</span>
+                                <span className="line-through text-lg text-gray-500">${product.price.toFixed(2)}</span>
+                            </>
+                        ) : (
+                            <span className="text-gray-800 font-bold text-2xl">${product.price.toFixed(2)}</span>
+                        )}
                         <button onClick={() => addToCart(product)} className="px-6 py-2 hover:bg-white hover:border-gray-800 border hover:text-black transition-colors cursor-pointer text-white rounded-lg bg-gray-800  ">
                             Add to Cart
                         </button>
