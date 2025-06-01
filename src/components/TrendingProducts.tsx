@@ -73,7 +73,7 @@ const TrendingProducts = () => {
             <h2 className="text-2xl font-semibold mb-4 font-integral">Top Trending</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {trending.map(product => (
-                    <div className="rounded-lg bg-gray-50 p-10 hover:shadow-xl transition-shadow duration-300 ease-in-out  cursor-pointer shadow-lg  ">
+                    <div className="rounded-2xl  p-10 hover:shadow-xl transition-shadow duration-300 ease-in-out  cursor-pointer shadow-2xl  ">
                         <div className="  p-5">
                             <img
                                 src={`http:${product.image}`}

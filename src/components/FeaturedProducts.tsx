@@ -11,7 +11,7 @@ const FeaturedProducts = ({ type }: { type: string }) => {
     }, []);
 
     return (
-        <div className="flex justify-center flex-col items-center py-10 w-full">
+        <div className="flex justify-center flex-col items-center py-10 w-full" id="featured">
             <h2 className="text-2xl font-semibold mb-4 font-integral">{type}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {products.map((product: ProductT) => (
