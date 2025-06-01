@@ -6,7 +6,7 @@ type CartItem = {
     id: string;
     name: string;
     image: string;
-    price: number;
+    discountedPrice: number;
     quantity: number;
 };
 
@@ -70,7 +70,7 @@ export const useCartStore = create<CartStore>()(
 
             total: () =>
                 get().cart.reduce(
-                    (sum, item) => sum + item.quantity * item.price,
+                    (sum, item) => sum + item.quantity * item.discountedPrice,
                     0
                 ),
         }),

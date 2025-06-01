@@ -57,7 +57,7 @@ const CheckoutPage: React.FC = () => {
         try {
             await setDoc(doc(db, "orders", user.uid + "_" + Date.now()), {
                 ...form,
-                items: cart.map(({ id, name, quantity, price, image }) => ({ id, name, quantity, price, image })),
+                items: cart.map(({ id, name, quantity, discountedPrice, image }) => ({ id, name, quantity, discountedPrice, image })),
                 total,
                 userId: user.uid,
                 createdAt: Timestamp.now(),
@@ -154,7 +154,7 @@ const CheckoutPage: React.FC = () => {
                             {cart.map((item) => (
                                 <li key={item.id} className="flex justify-between border-b py-2">
                                     <span>{item.name} x {item.quantity}</span>
-                                    <span>${item.price * item.quantity}</span>
+                                    <span>${item.discountedPrice * item.quantity}</span>
                                 </li>
                             ))}
                         </ul>

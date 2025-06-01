@@ -28,7 +28,7 @@ export const CartDrawer = () => {
                             <img src={item.image} alt={item.name} className="w-16 h-16 rounded object-cover" />
                             <div className="flex-1">
                                 <h3 className="font-semibold">{item.name}</h3>
-                                <p>${item.price.toFixed(2)}</p>
+                                <p>${item.discountedPrice.toFixed(2)}</p>
                                 <div className="flex items-center gap-2 mt-1">
                                     <button
                                         onClick={() => decreaseQty(item.id)}
@@ -65,8 +65,8 @@ export const CartDrawer = () => {
                 <Link
                     to="/checkout"
                     className={`mt-4 w-full text-center py-2 rounded border ${isCartEmpty
-                            ? 'bg-gray-400 border-gray-400 cursor-not-allowed text-gray-700 pointer-events-none'
-                            : 'bg-gray-800 border-gray-800 text-white hover:bg-white hover:text-black transition'
+                        ? 'bg-gray-400 border-gray-400 cursor-not-allowed text-gray-700 pointer-events-none'
+                        : 'bg-gray-800 border-gray-800 text-white hover:bg-white hover:text-black transition'
                         }`}
                     tabIndex={isCartEmpty ? -1 : 0}
                     aria-disabled={isCartEmpty}
