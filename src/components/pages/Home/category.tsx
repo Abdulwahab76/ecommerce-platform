@@ -6,11 +6,11 @@ const Category = () => {
         {
             name: 'Watches',
             slug: 'watches',
-            image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTf58kXk2IrcH8FbstYpuKajDj-iPpRjRd4Gg&s'
+            image: 'https://png.pngtree.com/thumb_back/fh260/background/20230717/pngtree-elegant-white-analog-men-s-wrist-watch-with-a-classic-twist-image_3891045.jpg'
         },
         {
-            name: 'Cloths',
-            slug: 'cloths',
+            name: 'Clothes',
+            slug: 'clothes',
             image: 'https://burst.shopifycdn.com/photos/clothing-on-retail-rack.jpg?width=1000&format=pjpg&exif=0&iptc=0'
         },
         {

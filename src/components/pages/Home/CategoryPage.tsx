@@ -19,7 +19,8 @@ const CategoryPage = () => {
     }, [slug]);
 
     return (
-        <div className="px-10 py-10">
+        <div className="px-10 py-10  ">
+
             <h1 className="text-3xl font-bold mb-6 capitalize">Products in "{slug}"</h1>
             {loading ? (
                 <ShopCoLoader />
@@ -31,7 +32,6 @@ const CategoryPage = () => {
                 </div>
             )}
             {products.length == 0 && <div>
-
                 <h3 className="text-lg font-semibold">No items available yet.</h3>
             </div>}
         </div>
