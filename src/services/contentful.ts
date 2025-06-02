@@ -118,3 +118,52 @@ export const fetchProductsBySearch = async (query: string): Promise<ProductT[]> 
 
     return res.items.map(mapProductEntry);
 };
+
+
+type Filters = {
+    category?: string;
+    brand?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    search?: string;
+    tags?: string[];
+    sizes?: string[];
+    colors?: string[];
+};
+
+export const fetchProductsByFilters = async (filters: Filters): Promise<ProductT[]> => {
+    const query: Record<string, any> = {
+        content_type: "ecommerce",
+    };
+
+    if (filters.category) query["fields.category"] = filters.category;
+    if (filters.brand) query["fields.brand"] = filters.brand;
+    if (filters.minPrice) query["fields.price[gte]"] = filters.minPrice;
+    if (filters.maxPrice) query["fields.price[lte]"] = filters.maxPrice;
+    if (filters.search) query.query = filters.search;
+    if (filters.tags && filters.tags.length > 0) query["fields.tags[in]"] = filters.tags.join(",");
+    if (filters.sizes && filters.sizes.length > 0) query["fields.sizes[in]"] = filters.sizes.join(",");
+    if (filters.colors && filters.colors.length > 0) query["fields.colors[in]"] = filters.colors.join(",");
+
+    const res = await client.getEntries(query);
+    return res.items.map(mapProductEntry);
+};
+
+// 📄 Fetch products with pagination
+export const fetchProductsWithPagination = async (
+    page: number,
+    limit: number
+): Promise<{ products: ProductT[]; total: number }> => {
+    const skip = (page - 1) * limit;
+
+    const res = await client.getEntries({
+        content_type: "ecommerce",
+        skip,
+        limit,
+    });
+
+    const products = res.items.map(mapProductEntry);
+    const total = res.total;
+
+    return { products, total };
+};
