@@ -1,6 +1,6 @@
-import Button from '../../common/button';
 import Bg from '/images/bg.png';
 import useMediaQuery from '../../../hooks/useMediaQuery';
+import { Link } from 'react-router-dom';
 
 const Hero = () => {
     const isMobile = useMediaQuery('(min-width: 650px)');
@@ -22,17 +22,12 @@ const Hero = () => {
                         Browse through our diverse range of meticulously crafted garments, designed to bring out your individuality and cater to your sense of style.
                     </p>
                 </header>
-                <Button
-                    className="rounded-full h-12 md:h-14 py-3 text-sm w-52 cursor-pointer"
-                    onClick={() => {
-                        const element = document.querySelector('#featured');
-                        if (element) {
-                            element.scrollIntoView({ behavior: 'smooth' });
-                        }
-                    }}
+                <Link
+                    className="rounded-full h-12 md:h-14 py-3 text-sm w-52 cursor-pointer bg-black text-white flex justify-center items-center "
+                    to='/shop'
                 >
                     Shop Now
-                </Button>
+                </Link>
                 <div className="flex flex-wrap gap-6  items-center justify-center text-center md:text-left md:justify-start">
                     <div>
                         <h2 className="text-3xl md:text-4xl font-medium">200+</h2>

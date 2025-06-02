@@ -9,9 +9,9 @@ import { CartDrawer } from '../CartDrawer';
 
 const NAV_LINKS = [
     { label: 'Shop', href: '/shop' },
-    { label: 'On Sale', href: '/on-sale' },
-    { label: 'New Arrival', href: '/new-arrival' },
-    { label: 'Brands', href: '/brands' },
+    { label: 'Top Selling', href: '#top-selling' },
+    { label: 'New Arrival', href: '#featured' },
+    { label: 'Brands', href: '#brands' },
 ];
 
 const Navbar = () => {
@@ -54,6 +54,13 @@ const Navbar = () => {
                             key={link.label}
                             href={link.href}
                             className="hover:text-gray-600 whitespace-nowrap"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                const target = document.querySelector(link.href);
+                                if (target) {
+                                    target.scrollIntoView({ behavior: 'smooth' });
+                                }
+                            }}
                         >
                             {link.label}
                         </a>

@@ -69,11 +69,11 @@ const TrendingProducts = () => {
     if (trending.length === 0) return <p className="text-gray-500  animate-pulse w-full mx-auto flex justify-center items-center text-center">No trending products right now.</p>;
 
     return (
-        <div className="flex justify-center flex-col items-center py-10 w-full">
+        <div className="flex justify-center flex-col items-center py-10 w-full" id="top-trending">
             <h2 className="text-2xl font-semibold mb-4 font-integral">Top Trending</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {trending.map(product => (
-                    <div className="rounded-2xl  p-10 hover:shadow-xl transition-shadow duration-300 ease-in-out  cursor-pointer shadow-2xl  ">
+                    <div className="rounded-2xl  min-w-[320px]   p-10 hover:shadow-xl transition-shadow duration-300 ease-in-out  cursor-pointer shadow-2xl  ">
                         <div className="  p-5">
                             <img
                                 src={`http:${product.image}`}
