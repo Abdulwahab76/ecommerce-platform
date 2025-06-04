@@ -19,45 +19,47 @@ const TopSellingProducts = () => {
 
     useEffect(() => {
         const fetchTopSelling = async () => {
+            setLoading(true); // Explicitly set loading to true
+
             try {
                 const snapshot = await getDocs(collection(db, "orders"));
                 const orders = snapshot.docs.map(doc => doc.data());
 
+                // Stats dictionary to accumulate data
                 const stats: Record<string, ProductStats> = {};
 
                 orders.forEach(order => {
                     order.items.forEach((item: any) => {
-                        const {
-                            id,
-                            name,
-                            quantity,
-                            price,
-                            image
-                        } = item;
+                        const { id, name, quantity, price, image } = item;
 
-                        if (!stats[id]) {
-                            stats[id] = {
-                                id,
-                                name,
-                                quantitySold: 0,
-                                revenue: 0,
-                                price,
-                                image,
-                            };
+                        // Ensure each product has valid data
+                        if (id && name && price && image) {
+                            if (!stats[id]) {
+                                stats[id] = {
+                                    id,
+                                    name,
+                                    quantitySold: 0,
+                                    revenue: 0,
+                                    price,
+                                    image,
+                                };
+                            }
+
+                            stats[id].quantitySold += quantity;
+                            stats[id].revenue += quantity * price;
                         }
-
-                        stats[id].quantitySold += quantity;
-                        stats[id].revenue += quantity * price;
                     });
                 });
 
+                // Sort products by quantity sold and slice to top 6
                 const sorted = Object.values(stats)
                     .sort((a, b) => b.quantitySold - a.quantitySold)
-                    .slice(0, 6); // top 4–6
+                    .slice(0, 6);
 
                 setTopProducts(sorted);
             } catch (error) {
                 console.error("Error calculating top-selling products:", error);
+                alert("Failed to load top-selling products.");
             } finally {
                 setLoading(false);
             }
@@ -73,15 +75,22 @@ const TopSellingProducts = () => {
             </div>
         );
     }
-    console.log(topProducts, 'pro');
+
+    if (topProducts.length === 0) {
+        return (
+            <div className="flex justify-center items-center h-40">
+                <p className="text-gray-500">No top-selling products available.</p>
+            </div>
+        );
+    }
 
     return (
         <div className="flex justify-center flex-col items-center py-10 w-full" id="top-selling">
-            <h2 className="text-2xl font-semibold mb-4 font-integral">Top Selling</h2>
+            <h2 className="text-2xl font-semibold mb-12 font-integral">Top Selling</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {topProducts.map(product => (
-                    <div className="rounded-2xl min-w-[320px]  p-10 hover:shadow-xl transition-shadow duration-300 ease-in-out  cursor-pointer shadow-2xl  ">
-                        <div className="  p-5">
+                    <div key={product.id} className="rounded-2xl min-w-[320px] p-10 hover:shadow-xl transition-shadow duration-300 ease-in-out cursor-pointer shadow-2xl">
+                        <div className="p-5">
                             <img
                                 src={`http:${product.image}`}
                                 alt={product.name}
@@ -90,19 +99,19 @@ const TopSellingProducts = () => {
                         </div>
                         <h2 className="text-lg font-semibold text-gray-900">{product.name}</h2>
 
-                        <div className="flex justify-between  flex-col items-start ">
-                            <p className="text-gray-800 text-lg">Sold: <span className="font-medium">{product.quantitySold}</span></p>
+                        <div className="flex justify-between flex-col items-start">
+                            <p className="text-gray-800 text-lg">
+                                Sold: <span className="font-medium">{product.quantitySold}</span>
+                            </p>
                             <div className="flex justify-between w-full items-center">
                                 <p className="text-lg text-gray-800">Price: ${product.price.toFixed(2)}</p>
-                                <div className="w-7 h-7 bg-black rounded-full flex justify-center items-center ">
-                                    <Link to={`/product/${product.name.toLowerCase().replace(/\s+/g, "-")}`} className="text-primary  font-semibold   ">
-                                        <ArrowRight className="text-white  " size={14} />
+                                <div className="w-7 h-7 bg-black rounded-full flex justify-center items-center">
+                                    <Link to={`/product/${product.name.toLowerCase().replace(/\s+/g, "-")}`} className="text-primary font-semibold">
+                                        <ArrowRight className="text-white" size={14} />
                                     </Link>
                                 </div>
                             </div>
-
                         </div>
-
                     </div>
                 ))}
             </div>
