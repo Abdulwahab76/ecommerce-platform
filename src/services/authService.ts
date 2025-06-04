@@ -8,34 +8,48 @@ import {
     sendEmailVerification,
 } from "firebase/auth";
 import { auth } from "./firebase";
-
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "./firebase";
 const ADMIN_EMAIL = import.meta.env.VITE_FIREBASE_ADMIN;
 
 // 🔐 Register User and Set Profile
 export const register = async (
     email: string,
     password: string,
-    profileData?: { displayName?: string, phoneNumber: string }
+    profileData?: { displayName?: string; phoneNumber: string }
 ): Promise<{ user: User | null; token: string | null }> => {
     try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
 
-        // Optionally update user profile (name etc.)
         if (profileData?.displayName) {
-            await updateProfile(userCredential.user, {
+            await updateProfile(user, {
                 displayName: profileData.displayName,
             });
         }
 
-        const token = await getIdToken(userCredential.user);
+        const token = await getIdToken(user);
         localStorage.setItem("token", token);
 
-        return { user: userCredential.user, token };
+        // ✅ Save user details to Firestore
+        await setDoc(doc(db, "users", user.uid), {
+            uid: user.uid,
+            email: user.email,
+            displayName: profileData?.displayName || "",
+            phoneNumber: profileData?.phoneNumber || "",
+            role: "user",
+            createdAt: serverTimestamp(),
+            lastLogin: serverTimestamp(),
+            emailVerified: user.emailVerified
+        });
+
+        return { user, token };
     } catch (error) {
         console.error("Registration Error:", error);
         return { user: null, token: null };
     }
 };
+
 
 // 🔐 Login User
 export const login = async (email: string, password: string): Promise<User | null> => {
