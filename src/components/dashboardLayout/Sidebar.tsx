@@ -7,7 +7,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ setSelectedView }) => {
     return (
-        <div className="w-64 bg-white h-full shadow-lg p-5">
+        <div className="h-full w-full p-5 bg-white">
             <h2 className="text-2xl font-bold mb-5">Admin Panel</h2>
             <ul className="space-y-4">
                 <li onClick={() => setSelectedView("profile")} className="cursor-pointer hover:bg-gray-200 p-2 rounded-md">Profile</li>
@@ -18,5 +18,6 @@ const Sidebar: React.FC<SidebarProps> = ({ setSelectedView }) => {
         </div>
     );
 };
+
 
 export default Sidebar;
