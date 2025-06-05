@@ -25,6 +25,7 @@ const ProductPage: React.FC = () => {
     const addToCart = useCartStore((s) => s.addToCart);
     const navigate = useNavigate();
     const hasDiscount = product.price && product.discountPercent > 0;
+    const cartItems = useCartStore((s) => s.cart);
 
     useEffect(() => {
         if (!slug) {
@@ -43,14 +44,22 @@ const ProductPage: React.FC = () => {
                 setLoading(false);
             });
     }, [slug]);
-    const buyNow = (product: ProductT) => {
-        addToCart({ ...product, discountedPrice: product.discountedPrice ?? product.price });
-        navigate('/checkout');
-    };
+
 
     if (loading) return <div className="p-10 text-center">Loading...</div>;
     if (error) return <div className="p-10 text-center text-red-500">{error}</div>;
+    const quantityInCart = cartItems.find(item => item.id === product.id)?.quantity || 0;
+    const isOutOfStock = product.inStock !== undefined && quantityInCart >= product.inStock;
+    const buyNow = (product: ProductT) => {
+        if (isOutOfStock) {
+            navigate('/checkout');
+        } else {
+            addToCart({ ...product, discountedPrice: product.discountedPrice ?? product.price });
+            navigate('/checkout');
+        }
 
+
+    };
     return (
         <div className="px-3 md:px-20">
             <div
@@ -98,15 +107,20 @@ const ProductPage: React.FC = () => {
 
                         {hasDiscount ? (
                             <>
-                                <span className="text-gray-800 font-bold text-2xl">${product.discountedPrice}</span>
-                                <span className="line-through text-lg text-gray-500">${product.price.toFixed(2)}</span>
+                                <span className="text-gray-800 font-bold text-2xl">PKR {product.discountedPrice}</span>
+                                <span className="line-through text-lg text-gray-500">PKR {product.price.toFixed(2)}</span>
                             </>
                         ) : (
-                            <span className="text-gray-800 font-bold text-2xl">${product.price.toFixed(2)}</span>
+                            <span className="text-gray-800 font-bold text-2xl">PKR {product.price.toFixed(2)}</span>
                         )}
-                        <button onClick={() => addToCart(product)} className="px-6 py-2 hover:bg-white hover:border-gray-800 border hover:text-black transition-colors cursor-pointer text-white rounded-lg bg-gray-800  ">
-                            Add to Cart
+                        <button
+                            onClick={() => addToCart(product)}
+                            disabled={isOutOfStock}
+                            className={`px-6 py-2 hover:bg-white hover:border-gray-800 border hover:text-black transition-colors cursor-pointer text-white rounded-lg bg-gray-800 ${isOutOfStock ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        >
+                            {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
                         </button>
+
                         <button
                             onClick={() => buyNow(product)}
                             className="px-6 py-2 hover:bg-white hover:border-gray-800 border hover:text-black transition-colors cursor-pointer text-white rounded-lg bg-gray-800  "
