@@ -48,15 +48,23 @@ const CheckoutPage: React.FC = () => {
     };
 
     const handleSubmit = async () => {
-        if (!form.name || !form.email || !form.address1 || !form.city || !form.state || !form.zip || !form.country) {
+        if (
+            !form.name ||
+            !form.email ||
+            !form.address1 ||
+            !form.city ||
+            !form.state ||
+            !form.zip ||
+            !form.country
+        ) {
             alert("Please fill all fields.");
             return;
         }
 
         setLoading(true);
         try {
-            // 1. Save Order to Firebase
             const orderId = user.uid + "_" + Date.now();
+
             await setDoc(doc(db, "orders", orderId), {
                 ...form,
                 items: cart.map(({ id, name, quantity, discountedPrice, image, costPrice }) => ({
@@ -72,25 +80,30 @@ const CheckoutPage: React.FC = () => {
                 createdAt: Timestamp.now(),
             });
 
-            // 2. Update stock in Contentful via Vercel Serverless Function
+            // Call Vercel API to update stock
             const res = await fetch("/api/updateStock", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     items: cart.map((item) => ({
-                        id: item.id, // Contentful entry ID
+                        id: item.id,
                         quantity: item.quantity,
                     })),
                 }),
             });
 
-            const result = await res.json();
-            if (!res.ok) {
-                console.error("Stock update failed:", result.error);
-                alert("Order saved but failed to update stock.");
+            let result = {};
+            try {
+                result = await res.json();
+            } catch (e) {
+                console.warn("No JSON returned from updateStock");
             }
 
-            // 3. Clear cart and redirect
+            if (!res.ok) {
+                console.error("Stock update failed:", result);
+                alert("Order saved, but failed to update stock.");
+            }
+
             clearCart();
             navigate("/success");
         } catch (err) {
@@ -100,6 +113,7 @@ const CheckoutPage: React.FC = () => {
             setLoading(false);
         }
     };
+
 
     return (
         <div className="px-3 md:px-20">
