@@ -24,11 +24,11 @@ const ProductCard: React.FC<ProductT> = ({ name, price, image, slug, discountPer
                 <div className="text-lg text-gray-800">
                     {hasDiscount ? (
                         <>
-                            <span className="text-gray-800 font-bold">${discountedPrice}</span>
-                            <span className="line-through text-sm text-gray-500 ml-2">${price.toFixed(2)}</span>
+                            <span className="text-gray-800 font-bold">PKR {discountedPrice}</span>
+                            <span className="line-through text-sm text-gray-500 ml-2">PKR {price.toFixed(2)}</span>
                         </>
                     ) : (
-                        <span>${price.toFixed(2)}</span>
+                        <span>PKR {price.toFixed(2)}</span>
                     )}
                 </div>
 
