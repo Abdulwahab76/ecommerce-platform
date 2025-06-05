@@ -1,71 +1,19 @@
-// src/pages/admin/Orders.tsx
-import React, { useEffect, useState } from "react";
-import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
-import { db } from "../../services/firebase";
-
-interface Order {
-    id: string;
-    name: string;
-    email: string;
-    address1: string;
-    city: string;
-    state: string;
-    zip: string;
-    country: string;
-    total: number;
-    userId: string;
-    createdAt?: any;
-    items: {
-        id: string;
-        name: string;
-        quantity: number;
-        discountedPrice: number;
-        image?: string;
-    }[];
-}
+import React, { useState } from "react";
+import { useOrders, type Order } from "../../hooks/useOrders";
 
 const Orders: React.FC = () => {
-    const [orders, setOrders] = useState<Order[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { orders, loading, error, deleteOrder } = useOrders();
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-
-    useEffect(() => {
-        const fetchOrders = async () => {
-            try {
-                const snapshot = await getDocs(collection(db, "orders"));
-                const list = snapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...(doc.data() as Omit<Order, "id">),
-                }));
-                setOrders(list);
-            } catch (error) {
-                console.error("Error fetching orders:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchOrders();
-    }, []);
-
-    const handleDelete = async (id: string) => {
-        try {
-            await deleteDoc(doc(db, "orders", id));
-            setOrders(prev => prev.filter(order => order.id !== id));
-        } catch (error) {
-            console.error("Failed to delete order:", error);
-        }
-    };
 
     return (
         <div className="p-4 bg-white rounded shadow-md overflow-x-auto">
             <h2 className="text-2xl font-semibold mb-4">Manage Orders</h2>
 
-            {loading ? (
-                <p>Loading orders...</p>
-            ) : (
-                <div className="w-full overflow-auto">
+            {loading && <p>Loading orders...</p>}
+            {error && <p className="text-red-600">{error}</p>}
 
+            {!loading && !error && (
+                <div className="w-full overflow-auto">
                     <table className="min-w-[800px] w-full text-sm border border-collapse">
                         <thead className="bg-gray-100 text-left">
                             <tr>
@@ -79,6 +27,13 @@ const Orders: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody>
+                            {orders.length === 0 && (
+                                <tr>
+                                    <td colSpan={7} className="text-center text-gray-500 py-4">
+                                        No orders found.
+                                    </td>
+                                </tr>
+                            )}
                             {orders.map(order => (
                                 <tr key={order.id} className="border-t hover:bg-gray-50">
                                     <td className="p-2 border">{order.name}</td>
@@ -96,7 +51,7 @@ const Orders: React.FC = () => {
                                     </td>
                                     <td className="p-2 border space-x-2">
                                         <button
-                                            onClick={() => handleDelete(order.id)}
+                                            onClick={() => deleteOrder(order.id)}
                                             className="text-red-600 hover:underline"
                                         >
                                             Delete
@@ -105,10 +60,7 @@ const Orders: React.FC = () => {
                                 </tr>
                             ))}
                         </tbody>
-
                     </table>
-                    {orders.length === 0 && (
-                        <p className="text-gray-500 text-center mt-4">No orders found.</p>)}
                 </div>
             )}
 

@@ -43,7 +43,7 @@ const AdminDashboard: React.FC = () => {
     };
 
     return (
-        <div  >
+        <div>
 
             <Header onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
 
@@ -70,7 +70,7 @@ const AdminDashboard: React.FC = () => {
                 </div>
 
                 {/* Main content */}
-                <div className="flex-1 flex flex-col p-5  ">
+                <div className="flex-1 flex flex-col px-3 ">
                     <div className="mt-5">{renderContent()}</div>
                 </div>
             </div>

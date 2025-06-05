@@ -1,64 +1,32 @@
-import React, { useEffect, useState } from "react";
-import { fetchProducts, type ProductT } from "../../services/contentful";
-import { db } from "../../services/firebase";
-import { getDocs, collection, setDoc, doc } from "firebase/firestore";
+import React, { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { isAdmin } from "../../services/authService";
+import { setDoc, doc } from "firebase/firestore";
+import { db } from "../../services/firebase";
+import DateRangeSelector from "../DateRangeSelector";
+import { useProducts } from "../../hooks/useProductsAndOrders";
 
 const LOW_STOCK_THRESHOLD = 5;
 
 const Products: React.FC = () => {
     const { user } = useAuth();
-    const [products, setProducts] = useState<ProductT[]>([]);
-    const [orders, setOrders] = useState<any[]>([]); // Store order data here
-    const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
+    const [dateRange, setDateRange] = useState({
+        startDate: new Date(new Date().setMonth(new Date().getMonth() - 1)), // last month
+        endDate: new Date(),
+    });
 
-    useEffect(() => {
-        const loadProducts = async () => {
-            try {
-                const data = await fetchProducts();
-                setProducts(data);
-            } catch (err) {
-                console.error("Error loading products", err);
-            } finally {
-                setLoading(false);
-            }
-        };
+    const { products, loading, getUpdatedStock, setProducts } = useProducts(dateRange);
 
-        const loadOrders = async () => {
-            try {
-                const snapshot = await getDocs(collection(db, "orders"));
-                const list = snapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...(doc.data() as Omit<string, "id">),
-                }));
-                setOrders(list);
-            } catch (error) {
-                console.error("Error fetching orders:", error);
-            }
-        };
+    if (!isAdmin(user?.email)) {
+        return <div className="text-red-500 p-4">You are not authorized to manage products.</div>;
+    }
 
-        loadProducts();
-        loadOrders();
-    }, []);
+    const filteredProducts = products.filter(p =>
+        p.name.toLowerCase().includes(search.toLowerCase())
+    );
 
-    // Helper function to calculate stock based on orders
-    const getUpdatedStock = (productId: string, initialStock: number) => {
-        let totalQuantitySold = 0;
-
-        orders.forEach(order => {
-            order.items.forEach((item: any) => {
-                if (item.id === productId) {
-                    totalQuantitySold += item.quantity;
-                }
-            });
-        });
-
-        return initialStock - totalQuantitySold;
-    };
-
-    const saveToFirestore = async (product: ProductT) => {
+    const saveToFirestore = async (product: any) => {
         try {
             await setDoc(doc(db, "products", product.id), {
                 ...product,
@@ -72,19 +40,12 @@ const Products: React.FC = () => {
         }
     };
 
-    const filteredProducts = products.filter(p =>
-        p.name.toLowerCase().includes(search.toLowerCase())
-    );
-
-    // Check if the user is an admin
-    if (!isAdmin(user?.email)) {
-        return <div className="text-red-500 p-4">You are not authorized to manage products.</div>;
-    }
-
     const updateDiscount = async (id: string, newDiscount: number) => {
         try {
             await setDoc(doc(db, "products", id), { discountPercent: newDiscount }, { merge: true });
-            setProducts(prev => prev.map(p => (p.id === id ? { ...p, discountPercent: newDiscount } : p)));
+            setProducts(prev =>
+                prev.map(p => (p.id === id ? { ...p, discountPercent: newDiscount } : p))
+            );
         } catch (err) {
             console.error("Discount update error:", err);
         }
@@ -92,21 +53,24 @@ const Products: React.FC = () => {
 
     return (
         <div className="p-4 bg-white rounded shadow overflow-x-auto">
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
                 <h2 className="text-xl font-bold">Manage Products</h2>
-                <input
-                    type="text"
-                    placeholder="Search products..."
-                    className="border px-3 py-1 rounded-md"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                />
+                <div className="flex gap-3 w-full md:w-auto">
+                    <input
+                        type="text"
+                        placeholder="Search products..."
+                        className="border px-3 py-1 rounded-md flex-grow"
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                    />
+                    <DateRangeSelector dateRange={dateRange} setDateRange={setDateRange} />
+                </div>
             </div>
 
             <div className="mb-4 text-sm text-gray-600">
                 Total: {products.length} | In Stock:{" "}
-                {products.filter(p => p.inStock > 0).length} | Out of Stock:{" "}
-                {products.filter(p => p.inStock === 0).length}
+                {products.filter(p => getUpdatedStock(p.id, p.inStock) > 0).length} | Out of Stock:{" "}
+                {products.filter(p => getUpdatedStock(p.id, p.inStock) <= 0).length}
             </div>
 
             {loading ? (
@@ -127,21 +91,19 @@ const Products: React.FC = () => {
                         {filteredProducts.map(p => {
                             const updatedStock = getUpdatedStock(p.id, p.inStock);
                             return (
-                                <tr key={p.id} className="border-t hover:bg-gray-50 *:text-center">
+                                <tr key={p.id} className="border-t hover:bg-gray-50 text-center">
                                     <td className="p-2 border">
                                         <img src={p.image} alt={p.name} className="w-12 h-12 object-cover rounded mx-auto" />
                                     </td>
                                     <td className="p-2 border">{p.name}</td>
-                                    <td className="p-2 border">PKR {p.price}</td>
+                                    <td className="p-2 border">PKR {p.price.toLocaleString()}</td>
                                     <td className="p-2 border">
-                                        <div className="text-center">
-                                            {/* Display updated stock as a readonly field */}
+                                        <div>
                                             <span>{updatedStock}</span>
-
                                             {updatedStock <= LOW_STOCK_THRESHOLD && updatedStock > 0 && (
                                                 <div className="text-yellow-500 text-xs mt-1">Low in Stock!</div>
                                             )}
-                                            {updatedStock === 0 && (
+                                            {updatedStock <= 0 && (
                                                 <div className="text-red-500 text-xs mt-1">Out of Stock!</div>
                                             )}
                                         </div>
@@ -150,8 +112,10 @@ const Products: React.FC = () => {
                                         <input
                                             type="number"
                                             value={p.discountPercent || 0}
-                                            onChange={(e) => updateDiscount(p.id, Number(e.target.value))}
+                                            onChange={e => updateDiscount(p.id, Number(e.target.value))}
                                             className="w-16 border p-1 rounded"
+                                            min={0}
+                                            max={100}
                                             readOnly
                                         />
                                     </td>

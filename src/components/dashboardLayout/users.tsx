@@ -1,54 +1,12 @@
 // src/pages/admin/Users.tsx
-import React, { useEffect, useState } from "react";
-import { collection, getDocs, doc, deleteDoc, updateDoc } from "firebase/firestore";
-import { db } from "../../services/firebase";
-
-interface User {
-    uid: string;
-    email: string;
-    displayName: string;
-    phoneNumber: string;
-    role: string;
-    emailVerified: boolean;
-    createdAt?: any;
-}
+import React, { useState } from "react";
+import { useUsers, type User } from "../../hooks/useUsers";
 
 const Users: React.FC = () => {
-    const [users, setUsers] = useState<User[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { users, loading, error, deleteUser, updateUserRole } = useUsers();
+
     const [editingUser, setEditingUser] = useState<User | null>(null);
     const [editRole, setEditRole] = useState("");
-
-    useEffect(() => {
-        fetchUsers();
-    }, []);
-
-    const fetchUsers = async () => {
-        try {
-            const snapshot = await getDocs(collection(db, "users"));
-            const usersList = snapshot.docs.map(doc => {
-                const data = doc.data() as User;
-                return {
-                    ...data,
-                    uid: doc.id,
-                };
-            });
-            setUsers(usersList);
-        } catch (error) {
-            console.error("Error fetching users:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleDelete = async (uid: string) => {
-        try {
-            await deleteDoc(doc(db, "users", uid));
-            setUsers(prev => prev.filter(user => user.uid !== uid));
-        } catch (error) {
-            console.error("Error deleting user:", error);
-        }
-    };
 
     const handleEdit = (user: User) => {
         setEditingUser(user);
@@ -57,32 +15,21 @@ const Users: React.FC = () => {
 
     const saveEdit = async () => {
         if (!editingUser) return;
-
-        try {
-            await updateDoc(doc(db, "users", editingUser.uid), {
-                role: editRole,
-            });
-            setUsers(prev =>
-                prev.map(user =>
-                    user.uid === editingUser.uid ? { ...user, role: editRole } : user
-                )
-            );
-            setEditingUser(null);
-        } catch (error) {
-            console.error("Error updating user:", error);
-        }
+        await updateUserRole(editingUser.uid, editRole);
+        setEditingUser(null);
     };
 
     return (
         <div className="p-4 bg-white rounded shadow-md overflow-x-auto">
             <h2 className="text-2xl font-semibold mb-4">Manage Users</h2>
 
-            {loading ? (
-                <p>Loading users...</p>
-            ) : (
+            {loading && <p>Loading users...</p>}
+            {error && <p className="text-red-600">{error}</p>}
+
+            {!loading && !error && (
                 <div className="w-full overflow-auto">
-                    <table className="min-w-[600px] w-full text-sm border border-collapse   ">
-                        <thead className="  text-left">
+                    <table className="min-w-[600px] w-full text-sm border border-collapse">
+                        <thead className="text-left">
                             <tr>
                                 <th className="p-2 border">Name</th>
                                 <th className="p-2 border">Email</th>
@@ -93,6 +40,13 @@ const Users: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody>
+                            {users.length === 0 && (
+                                <tr>
+                                    <td colSpan={6} className="text-center text-gray-500 py-4">
+                                        No users found.
+                                    </td>
+                                </tr>
+                            )}
                             {users.map(user => (
                                 <tr key={user.uid} className="border-t hover:bg-gray-50">
                                     <td className="p-2 border">{user.displayName || "N/A"}</td>
@@ -108,7 +62,7 @@ const Users: React.FC = () => {
                                             Edit
                                         </button>
                                         <button
-                                            onClick={() => handleDelete(user.uid)}
+                                            onClick={() => deleteUser(user.uid)}
                                             className="text-red-600 hover:underline"
                                         >
                                             Delete
@@ -118,8 +72,6 @@ const Users: React.FC = () => {
                             ))}
                         </tbody>
                     </table>
-                    {users.length === 0 && (
-                        <p className="text-gray-500 text-center mt-4">No users found.</p>)}
                 </div>
             )}
 
