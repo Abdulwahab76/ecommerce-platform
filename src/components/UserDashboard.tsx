@@ -6,10 +6,9 @@ import UserOrders from "./UserDashboardLayout/UserOrders";
 import AccountSettings from "./UserDashboardLayout/AccountSettings";
 import HelpCenter from "./UserDashboardLayout/HelpCenter";
 
-import { useAuth } from "../context/AuthContext";
 
 const UserDashboard: React.FC = () => {
-  const { user } = useAuth();
+
   const [selectedView, setSelectedView] = useState("profile");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 

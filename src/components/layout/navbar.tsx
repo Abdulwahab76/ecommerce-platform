@@ -2,7 +2,7 @@ import { AlignJustify, CircleUser, Search, X } from 'lucide-react';
 import { useState } from 'react';
 import { signOut } from "firebase/auth";
 import { auth } from "../../services/firebase";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { CartIcon } from '../CartIcon';
 import { CartDrawer } from '../CartDrawer';
@@ -85,7 +85,7 @@ const Navbar = () => {
                 </div>}
 
                 {/* Search Bar */}
-                {!specificRoute && <ProductSearchDropdown toggleSearch={toggleSearch}/>}
+                {!specificRoute && <ProductSearchDropdown toggleSearch={toggleSearch} />}
 
                 {/* Icons and Authentication Links */}
                 <div className="flex gap-x-2 items-center">
