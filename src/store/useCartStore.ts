@@ -3,11 +3,13 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 type CartItem = {
+    inStock: number;
     id: string;
     name: string;
     image: string;
     discountedPrice: number;
     quantity: number;
+    costPrice?: number
 };
 
 type CartStore = {
