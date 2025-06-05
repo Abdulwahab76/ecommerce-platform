@@ -1,8 +1,8 @@
 import { type VercelRequest, type VercelResponse } from '@vercel/node';
 import { createClient } from 'contentful-management';
 
-const SPACE_ID = import.meta.env.CONTENTFUL_SPACE_ID;
-const ACCESS_TOKEN = import.meta.env.CONTENTFUL_MANAGEMENT_TOKEN;
+const SPACE_ID = import.meta.env.CONTENTFUL_SPACE_ID!;
+const ACCESS_TOKEN = import.meta.env.CONTENTFUL_MANAGEMENT_TOKEN!;
 
 const client = createClient({ accessToken: ACCESS_TOKEN });
 
