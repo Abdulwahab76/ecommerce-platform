@@ -1,9 +1,12 @@
 // src/pages/admin/Users.tsx
 import React, { useState } from "react";
 import { useUsers, type User } from "../../hooks/useUsers";
+import { isAdmin } from "../../services/authService";
+import { useAuth } from "../../context/AuthContext";
 
 const Users: React.FC = () => {
     const { users, loading, error, deleteUser, updateUserRole } = useUsers();
+    const { user } = useAuth();
 
     const [editingUser, setEditingUser] = useState<User | null>(null);
     const [editRole, setEditRole] = useState("");
@@ -18,7 +21,9 @@ const Users: React.FC = () => {
         await updateUserRole(editingUser.uid, editRole);
         setEditingUser(null);
     };
-
+    if (!isAdmin(user?.email)) {
+        return <div className="text-red-500 p-4">You are not authorized to manage products.</div>;
+    }
     return (
         <div className="p-4 bg-white rounded shadow-md overflow-x-auto">
             <h2 className="text-2xl font-semibold mb-4">Manage Users</h2>

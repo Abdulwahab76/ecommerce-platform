@@ -4,15 +4,21 @@ import SalesChart from "./SalesChart";
 import OrdersChart from "./OrdersChart";
 import MetricCard from "./MetricCard";
 import { useDashboardMetrics } from "../../hooks/useDashboardMetrics";
+import { useAuth } from "../../context/AuthContext";
+import { isAdmin } from "../../services/authService";
 
 const Dashboard: React.FC = () => {
     const [dateRange, setDateRange] = useState({
         startDate: new Date(new Date().setMonth(new Date().getMonth() - 1)),
         endDate: new Date(),
     });
+    const { user } = useAuth();
 
     const { metrics, trend, salesData, ordersData } = useDashboardMetrics(dateRange);
 
+    if (!isAdmin(user?.email)) {
+        return <div className="text-red-500 p-4">You are not authorized to manage products.</div>;
+    }
     return (
         <div className="space-y-4  ">
             {/* Date Picker */}

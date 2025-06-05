@@ -1,15 +1,15 @@
 // src/pages/AdminDashboard.tsx
 import React, { useEffect, useState } from "react";
-import Sidebar from "./dashboardLayout/Sidebar";
-import Header from "./dashboardLayout/header";
-import AdminProfileCard from "./dashboardLayout/AdminProfileCard";
-import Products from "./dashboardLayout/Products";
+import Sidebar from "./AdminDashboardLayout/Sidebar";
+import Header from "./AdminDashboardLayout/header";
+import AdminProfileCard from "./AdminDashboardLayout/AdminProfileCard";
+import Products from "./AdminDashboardLayout/Products";
 // import Orders from "./admin/Orders";
 // import Users from "./admin/Users";
 import { useAuth } from "../context/AuthContext";
 import { isAdmin } from "../services/authService";
-import Users from "./dashboardLayout/users";
-import Orders from "./dashboardLayout/orders";
+import Users from "./AdminDashboardLayout/users";
+import Orders from "./AdminDashboardLayout/orders";
 
 const AdminDashboard: React.FC = () => {
     const { user } = useAuth();

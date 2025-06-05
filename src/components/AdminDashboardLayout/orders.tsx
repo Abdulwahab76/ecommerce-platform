@@ -1,10 +1,16 @@
 import React, { useState } from "react";
 import { useOrders, type Order } from "../../hooks/useOrders";
+import { useAuth } from "../../context/AuthContext";
+import { isAdmin } from "../../services/authService";
 
 const Orders: React.FC = () => {
     const { orders, loading, error, deleteOrder } = useOrders();
-    const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+    const { user } = useAuth();
 
+    const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+    if (!isAdmin(user?.email)) {
+        return <div className="text-red-500 p-4">You are not authorized to manage products.</div>;
+    }
     return (
         <div className="p-4 bg-white rounded shadow-md overflow-x-auto">
             <h2 className="text-2xl font-semibold mb-4">Manage Orders</h2>
