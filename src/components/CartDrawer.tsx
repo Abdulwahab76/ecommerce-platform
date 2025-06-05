@@ -23,39 +23,48 @@ export const CartDrawer = () => {
                 {isCartEmpty ? (
                     <p className="text-center text-gray-500">Your cart is empty.</p>
                 ) : (
-                    cart.map((item) => (
-                        <div key={item.id} className="flex gap-4 items-center border-b pb-4">
-                            <img src={item.image} alt={item.name} className="w-16 h-16 rounded object-cover" />
-                            <div className="flex-1">
-                                <h3 className="font-semibold">{item.name}</h3>
-                                <p>${item.discountedPrice.toFixed(2)}</p>
-                                <div className="flex items-center gap-2 mt-1">
-                                    <button
-                                        onClick={() => decreaseQty(item.id)}
-                                        className="px-2 border rounded"
-                                        aria-label={`Decrease quantity of ${item.name}`}
-                                    >
-                                        -
-                                    </button>
-                                    <span>{item.quantity}</span>
-                                    <button
-                                        onClick={() => increaseQty(item.id)}
-                                        className="px-2 border rounded"
-                                        aria-label={`Increase quantity of ${item.name}`}
-                                    >
-                                        +
-                                    </button>
+                    cart.map((item) => {
+                        // Check stock before rendering controls
+                        const isOutOfStock = item.inStock === 0;
+                        const canIncrease = item.quantity < item.inStock;
+                        const canDecrease = item.quantity > 1;
+
+                        return (
+                            <div key={item.id} className="flex gap-4 items-center border-b pb-4">
+                                <img src={item.image} alt={item.name} className="w-16 h-16 rounded object-cover" />
+                                <div className="flex-1">
+                                    <h3 className="font-semibold">{item.name}</h3>
+                                    <p>${item.discountedPrice.toFixed(2)}</p>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <button
+                                            onClick={() => decreaseQty(item.id)}
+                                            className={`px-2 border rounded ${!canDecrease ? 'text-gray-400 cursor-not-allowed' : ''}`}
+                                            disabled={!canDecrease}
+                                            aria-label={`Decrease quantity of ${item.name}`}
+                                        >
+                                            -
+                                        </button>
+                                        <span>{item.quantity}</span>
+                                        <button
+                                            onClick={() => increaseQty(item.id)}
+                                            className={`px-2 border rounded ${!canIncrease || isOutOfStock ? 'text-gray-400 cursor-not-allowed' : ''}`}
+                                            disabled={!canIncrease || isOutOfStock}
+                                            aria-label={`Increase quantity of ${item.name}`}
+                                        >
+                                            +
+                                        </button>
+                                    </div>
                                 </div>
+                                <button
+                                    onClick={() => removeFromCart(item.id)}
+                                    className="text-red-500"
+                                    aria-label={`Remove ${item.name} from cart`}
+                                >
+                                    Remove
+                                </button>
                             </div>
-                            <button
-                                onClick={() => removeFromCart(item.id)}
-                                className="text-red-500"
-                                aria-label={`Remove ${item.name} from cart`}
-                            >
-                                Remove
-                            </button>
-                        </div>
-                    ))
+                        );
+                    })
                 )}
             </div>
 
