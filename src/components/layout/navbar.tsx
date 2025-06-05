@@ -2,10 +2,11 @@ import { AlignJustify, CircleUser, Search, X } from 'lucide-react';
 import { useState } from 'react';
 import { signOut } from "firebase/auth";
 import { auth } from "../../services/firebase";
-import { useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { CartIcon } from '../CartIcon';
 import { CartDrawer } from '../CartDrawer';
+import ProductSearchDropdown from '../ProductSearch';
 
 const NAV_LINKS = [
     { label: 'Shop', href: '/shop' },
@@ -27,7 +28,29 @@ const Navbar = () => {
     };
     const routes = ['/admin', '/user', '/login', '/register', 'verify-email']
     const specificRoute = routes.find(route => window.location.pathname.includes(route));
-    console.log(user, 'log');
+
+    const handleClick = (href: string) => (e: React.MouseEvent) => {
+        e.preventDefault();
+
+        if (href.startsWith("/")) {
+            // It's a full route, just navigate there
+            navigate(href);
+        } else if (href.startsWith("#")) {
+            // It's a hash link
+
+            if (location.pathname === "/") {
+                // On homepage already, scroll smoothly
+                const target = document.querySelector(href);
+                if (target) {
+                    target.scrollIntoView({ behavior: "smooth" });
+                }
+            } else {
+
+                navigate(`/${href}`);
+
+            }
+        }
+    };
 
     return (
         <nav className="bg-white px-2 md:px-10">
@@ -50,38 +73,19 @@ const Navbar = () => {
                 {/* Desktop Links */}
                 {!specificRoute && <div className="hidden lg:flex gap-5 text-lg">
                     {NAV_LINKS.map((link) => (
-                        <a
+                        <Link
                             key={link.label}
-                            href={link.href}
+                            to={link.href}
                             className="hover:text-gray-600 whitespace-nowrap"
-                            onClick={(e) => {
-                                e.preventDefault();
-                                const target = document.querySelector(link.href);
-                                if (target) {
-                                    target.scrollIntoView({ behavior: 'smooth' });
-                                }
-                            }}
+                            onClick={handleClick(link.href)}
                         >
                             {link.label}
-                        </a>
+                        </Link>
                     ))}
                 </div>}
 
                 {/* Search Bar */}
-                {!specificRoute && <div
-                    className={`${toggleSearch ? 'flex w-10/12' : 'hidden'} 
-                        w-6/12 ${!toggleSearch ? 'lg:flex' : ''} 
-                        ${toggleSearch ? 'absolute top-26 max-w-full px-4' : ''}`}
-                >
-                    <div className="flex bg-white md:bg-gray-100 w-full h-12 items-center gap-x-2 px-3 rounded-full">
-                        <Search className="text-gray-500" />
-                        <input
-                            type="text"
-                            placeholder="Search everything"
-                            className="outline-none bg-transparent w-full"
-                        />
-                    </div>
-                </div>}
+                {!specificRoute && <ProductSearchDropdown toggleSearch={toggleSearch}/>}
 
                 {/* Icons and Authentication Links */}
                 <div className="flex gap-x-2 items-center">
