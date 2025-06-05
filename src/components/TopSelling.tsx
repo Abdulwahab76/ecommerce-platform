@@ -8,9 +8,9 @@ type ProductStats = {
     id: string;
     name: string;
     quantitySold: number;
-    revenue: number;
-    price: number;
     image: string;
+    price: number;
+    orderCount: number;
 };
 
 const TopSellingProducts = () => {
@@ -19,47 +19,73 @@ const TopSellingProducts = () => {
 
     useEffect(() => {
         const fetchTopSelling = async () => {
-            setLoading(true); // Explicitly set loading to true
+            setLoading(true);
 
             try {
                 const snapshot = await getDocs(collection(db, "orders"));
+                if (snapshot.empty) {
+                    setTopProducts([]);
+                    return;
+                }
+
                 const orders = snapshot.docs.map(doc => doc.data());
-
-                // Stats dictionary to accumulate data
                 const stats: Record<string, ProductStats> = {};
+                const orderMap: Record<string, Set<string>> = {};
 
-                orders.forEach(order => {
+                orders.forEach((order, index) => {
+                    const orderId = `order_${index}`;
+                    const seenInThisOrder = new Set<string>();
+
+                    if (!Array.isArray(order.items)) return;
+
                     order.items.forEach((item: any) => {
-                        const { id, name, quantity, price, image } = item;
+                        const {
+                            id,
+                            name,
+                            quantity,
+                            image,
+                            discountedPrice,
+                            costPrice,
+                        } = item;
 
-                        // Ensure each product has valid data
-                        if (id && name && price && image) {
-                            if (!stats[id]) {
-                                stats[id] = {
-                                    id,
-                                    name,
-                                    quantitySold: 0,
-                                    revenue: 0,
-                                    price,
-                                    image,
-                                };
-                            }
+                        const quantityNum = Number(quantity);
+                        const price = discountedPrice || costPrice || 0;
 
-                            stats[id].quantitySold += quantity;
-                            stats[id].revenue += quantity * price;
+                        if (!id || !name || !quantityNum || !price || !image) return;
+
+                        if (!stats[id]) {
+                            stats[id] = {
+                                id,
+                                name,
+                                quantitySold: 0,
+                                image: image.startsWith("http") ? image : `http:${image}`,
+                                price,
+                                orderCount: 0,
+                            };
+                            orderMap[id] = new Set();
                         }
+
+                        stats[id].quantitySold += quantityNum;
+                        seenInThisOrder.add(id);
+                    });
+
+                    seenInThisOrder.forEach(pid => {
+                        orderMap[pid].add(orderId);
                     });
                 });
 
-                // Sort products by quantity sold and slice to top 6
-                const sorted = Object.values(stats)
+                Object.keys(orderMap).forEach(pid => {
+                    stats[pid].orderCount = orderMap[pid].size;
+                });
+
+                const top = Object.values(stats)
+                    .filter(p => p.orderCount >= 2) // appeared in at least 2 orders
                     .sort((a, b) => b.quantitySold - a.quantitySold)
                     .slice(0, 6);
 
-                setTopProducts(sorted);
+                setTopProducts(top);
             } catch (error) {
-                console.error("Error calculating top-selling products:", error);
-                alert("Failed to load top-selling products.");
+                console.error("Failed to fetch top-selling products:", error);
             } finally {
                 setLoading(false);
             }
@@ -70,47 +96,43 @@ const TopSellingProducts = () => {
 
     if (loading) {
         return (
-            <div className="flex justify-center items-center h-40">
-                <p className="text-gray-500 animate-pulse">Calculating top-selling products...</p>
+            <div className="h-40 flex items-center justify-center">
+                <p className="text-gray-500 animate-pulse">Loading top-selling products...</p>
             </div>
         );
     }
 
     if (topProducts.length === 0) {
         return (
-            <div className="flex justify-center items-center h-40">
-                <p className="text-gray-500">No top-selling products available.</p>
+            <div className="h-40 flex items-center justify-center">
+                <p className="text-gray-500">No top-selling products found.</p>
             </div>
         );
     }
 
     return (
-        <div className="flex justify-center flex-col items-center py-10 w-full" id="top-selling">
-            <h2 className="text-2xl font-semibold mb-12 font-integral">Top Selling</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {topProducts.map(product => (
-                    <div key={product.id} className="rounded-2xl min-w-[320px] p-10 hover:shadow-xl transition-shadow duration-300 ease-in-out cursor-pointer shadow-2xl">
-                        <div className="p-5">
-                            <img
-                                src={`http:${product.image}`}
-                                alt={product.name}
-                                className="w-full h-48 object-cover rounded-lg"
-                            />
-                        </div>
-                        <h2 className="text-lg font-semibold text-gray-900">{product.name}</h2>
+        <div className="py-10 w-full flex flex-col items-center" id="top-selling">
+            <h2 className="text-2xl font-semibold mb-10 font-integral text-center">Top Selling</h2>
 
-                        <div className="flex justify-between flex-col items-start">
-                            <p className="text-gray-800 text-lg">
-                                Sold: <span className="font-medium">{product.quantitySold}</span>
-                            </p>
-                            <div className="flex justify-between w-full items-center">
-                                <p className="text-lg text-gray-800">Price: ${product.price.toFixed(2)}</p>
-                                <div className="w-7 h-7 bg-black rounded-full flex justify-center items-center">
-                                    <Link to={`/product/${product.name.toLowerCase().replace(/\s+/g, "-")}`} className="text-primary font-semibold">
-                                        <ArrowRight className="text-white" size={14} />
-                                    </Link>
-                                </div>
-                            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {topProducts.map((product) => (
+                    <div key={product.id} className="rounded-2xl min-w-[320px] p-10 hover:shadow-xl transition-shadow duration-300 ease-in-out cursor-pointer shadow-2xl relative">
+                        <img
+                            src={product.image}
+                            alt={product.name}
+                            className="w-full h-48 object-cover rounded-lg mb-4"
+                        />
+                        <h3 className="text-lg font-bold mb-1">{product.name}</h3>
+                        <p className="text-sm text-gray-600 mb-1">Sold: {product.quantitySold}</p>
+                        <p className="text-sm text-gray-600 mb-2">Orders: {product.orderCount}</p>
+                        <div className="flex justify-between items-center">
+                            <p className="text-md font-semibold text-gray-800">PKR {product.price.toFixed(2)}</p>
+                            <Link
+                                to={`/product/${product.name.toLowerCase().replace(/\s+/g, "-")}`}
+                                className="bg-black w-7 h-7 flex items-center justify-center rounded-full"
+                            >
+                                <ArrowRight className="text-white" size={14} />
+                            </Link>
                         </div>
                     </div>
                 ))}
