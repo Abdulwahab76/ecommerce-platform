@@ -57,7 +57,7 @@ const CheckoutPage: React.FC = () => {
         try {
             await setDoc(doc(db, "orders", user.uid + "_" + Date.now()), {
                 ...form,
-                items: cart.map(({ id, name, quantity, discountedPrice, image }) => ({ id, name, quantity, discountedPrice, image })),
+                items: cart.map(({ id, name, quantity, discountedPrice, image, costPrice }) => ({ id, name, quantity, discountedPrice, image, costPrice })),
                 total,
                 userId: user.uid,
                 createdAt: Timestamp.now(),
