@@ -28,7 +28,8 @@ export interface ProductT {
     isFeatured: boolean;
     rating: number;
     productGallery: string[];
-    discountedPrice?: number
+    discountedPrice?: number;
+    costPrice?: any;
 }
 
 // 🔁 Reusable mapping function
@@ -41,7 +42,8 @@ const mapProductEntry = (item: Entry<any>): ProductT => ({
     discountedPrice: calculateDiscountedPrice(
         (item.fields.price as number) || 0,
         (item.fields.discountPercent as number) || 0
-    ), // 🆕 add this to ProductT
+    ),
+    costPrice: item.fields.costPrice,
     sku: (item.fields.sku as string) || "",
     image: ((item.fields.image as any)?.fields?.file?.url as string) || "",
     category: (item.fields.category as string) || "",
