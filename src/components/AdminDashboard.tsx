@@ -16,7 +16,7 @@ const AdminDashboard: React.FC = () => {
     const [profile, setProfile] = useState<any>(null);
     const [selectedView, setSelectedView] = useState("profile");
     const [isSidebarOpen, setIsSidebarOpen] = useState(false); // NEW
-
+   
     useEffect(() => {
         const loadProfile = async () => {
             if (isAdmin(user?.email)) {
@@ -29,7 +29,7 @@ const AdminDashboard: React.FC = () => {
     const renderContent = () => {
         switch (selectedView) {
             case "profile":
-                return <AdminProfileCard profile={profile} />;
+                return <AdminProfileCard />;
             case "products":
                 return <Products />;
             case "orders":

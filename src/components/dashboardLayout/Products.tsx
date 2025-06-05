@@ -1,18 +1,21 @@
 import React, { useEffect, useState } from "react";
 import { fetchProducts, type ProductT } from "../../services/contentful";
 import { db } from "../../services/firebase";
-import { doc, setDoc } from "firebase/firestore";
+import { getDocs, collection, setDoc, doc } from "firebase/firestore";
 import { useAuth } from "../../context/AuthContext";
 import { isAdmin } from "../../services/authService";
+
+const LOW_STOCK_THRESHOLD = 5;
 
 const Products: React.FC = () => {
     const { user } = useAuth();
     const [products, setProducts] = useState<ProductT[]>([]);
+    const [orders, setOrders] = useState<any[]>([]); // Store order data here
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
 
     useEffect(() => {
-        const load = async () => {
+        const loadProducts = async () => {
             try {
                 const data = await fetchProducts();
                 setProducts(data);
@@ -22,8 +25,38 @@ const Products: React.FC = () => {
                 setLoading(false);
             }
         };
-        load();
+
+        const loadOrders = async () => {
+            try {
+                const snapshot = await getDocs(collection(db, "orders"));
+                const list = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...(doc.data() as Omit<string, "id">),
+                }));
+                setOrders(list);
+            } catch (error) {
+                console.error("Error fetching orders:", error);
+            }
+        };
+
+        loadProducts();
+        loadOrders();
     }, []);
+
+    // Helper function to calculate stock based on orders
+    const getUpdatedStock = (productId: string, initialStock: number) => {
+        let totalQuantitySold = 0;
+
+        orders.forEach(order => {
+            order.items.forEach((item: any) => {
+                if (item.id === productId) {
+                    totalQuantitySold += item.quantity;
+                }
+            });
+        });
+
+        return initialStock - totalQuantitySold;
+    };
 
     const saveToFirestore = async (product: ProductT) => {
         try {
@@ -39,14 +72,14 @@ const Products: React.FC = () => {
         }
     };
 
-    const updateStock = async (id: string, newStock: number) => {
-        try {
-            await setDoc(doc(db, "products", id), { inStock: newStock }, { merge: true });
-            setProducts(prev => prev.map(p => (p.id === id ? { ...p, inStock: newStock } : p)));
-        } catch (err) {
-            console.error("Stock update error:", err);
-        }
-    };
+    const filteredProducts = products.filter(p =>
+        p.name.toLowerCase().includes(search.toLowerCase())
+    );
+
+    // Check if the user is an admin
+    if (!isAdmin(user?.email)) {
+        return <div className="text-red-500 p-4">You are not authorized to manage products.</div>;
+    }
 
     const updateDiscount = async (id: string, newDiscount: number) => {
         try {
@@ -56,14 +89,6 @@ const Products: React.FC = () => {
             console.error("Discount update error:", err);
         }
     };
-
-    const filteredProducts = products.filter(p =>
-        p.name.toLowerCase().includes(search.toLowerCase())
-    );
-
-    if (!isAdmin(user?.email)) {
-        return <div className="text-red-500 p-4">You are not authorized to manage products.</div>;
-    }
 
     return (
         <div className="p-4 bg-white rounded shadow overflow-x-auto">
@@ -99,47 +124,56 @@ const Products: React.FC = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredProducts.map(p => (
-                            <tr key={p.id} className="border-t hover:bg-gray-50">
-                                <td className="p-2 border">
-                                    <img src={p.image} alt={p.name} className="w-12 h-12 object-cover rounded" />
-                                </td>
-                                <td className="p-2 border">{p.name}</td>
-                                <td className="p-2 border">PKR {p.price}</td>
-                                <td className="p-2 border">
-                                    <input
-                                        type="number"
-                                        value={p.inStock}
-                                        onChange={(e) => updateStock(p.id, Number(e.target.value))}
-                                        className="w-20 border p-1 rounded"
-                                    />
-                                </td>
-                                <td className="p-2 border">
-                                    <input
-                                        type="number"
-                                        value={p.discountPercent || 0}
-                                        onChange={(e) => updateDiscount(p.id, Number(e.target.value))}
-                                        className="w-16 border p-1 rounded"
-                                    />
-                                </td>
-                                <td className="p-2 border space-x-2">
-                                    <a
-                                        href={`https://app.contentful.com/spaces/${import.meta.env.VITE_CONTENTFULL_SPACEID}/entries/${p.id}`}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="text-blue-500 hover:underline"
-                                    >
-                                        Edit
-                                    </a>
-                                    <button
-                                        onClick={() => saveToFirestore(p)}
-                                        className="text-green-600 hover:underline"
-                                    >
-                                        Save
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
+                        {filteredProducts.map(p => {
+                            const updatedStock = getUpdatedStock(p.id, p.inStock);
+                            return (
+                                <tr key={p.id} className="border-t hover:bg-gray-50 *:text-center">
+                                    <td className="p-2 border">
+                                        <img src={p.image} alt={p.name} className="w-12 h-12 object-cover rounded mx-auto" />
+                                    </td>
+                                    <td className="p-2 border">{p.name}</td>
+                                    <td className="p-2 border">PKR {p.price}</td>
+                                    <td className="p-2 border">
+                                        <div className="text-center">
+                                            {/* Display updated stock as a readonly field */}
+                                            <span>{updatedStock}</span>
+
+                                            {updatedStock <= LOW_STOCK_THRESHOLD && updatedStock > 0 && (
+                                                <div className="text-yellow-500 text-xs mt-1">Low in Stock!</div>
+                                            )}
+                                            {updatedStock === 0 && (
+                                                <div className="text-red-500 text-xs mt-1">Out of Stock!</div>
+                                            )}
+                                        </div>
+                                    </td>
+                                    <td className="p-2 border">
+                                        <input
+                                            type="number"
+                                            value={p.discountPercent || 0}
+                                            onChange={(e) => updateDiscount(p.id, Number(e.target.value))}
+                                            className="w-16 border p-1 rounded"
+                                            readOnly
+                                        />
+                                    </td>
+                                    <td className="p-2 border space-x-2">
+                                        <a
+                                            href={`https://app.contentful.com/spaces/${import.meta.env.VITE_CONTENTFULL_SPACEID}/entries/${p.id}`}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="text-blue-500 hover:underline"
+                                        >
+                                            Edit
+                                        </a>
+                                        <button
+                                            onClick={() => saveToFirestore(p)}
+                                            className="text-green-600 hover:underline"
+                                        >
+                                            Save
+                                        </button>
+                                    </td>
+                                </tr>
+                            );
+                        })}
                     </tbody>
                 </table>
             )}
