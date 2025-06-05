@@ -1,42 +1,28 @@
-// src/pages/AdminDashboard.tsx
-import React, { useEffect, useState } from "react";
-import Sidebar from "./AdminDashboardLayout/Sidebar";
+import React, { useState } from "react";
+import Sidebar from "./UserDashboardLayout/sidebar";
 import Header from "./AdminDashboardLayout/header";
-import AdminProfileCard from "./AdminDashboardLayout/AdminProfileCard";
-import Products from "./AdminDashboardLayout/Products";
-// import Orders from "./admin/Orders";
-// import Users from "./admin/Users";
+import UserProfile from "./UserDashboardLayout/UserProfile";
+import UserOrders from "./UserDashboardLayout/UserOrders";
+import AccountSettings from "./UserDashboardLayout/AccountSettings";
+import HelpCenter from "./UserDashboardLayout/HelpCenter";
+
 import { useAuth } from "../context/AuthContext";
-import { isAdmin } from "../services/authService";
-import Users from "./AdminDashboardLayout/users";
-import Orders from "./AdminDashboardLayout/orders";
 
-const AdminDashboard: React.FC = () => {
+const UserDashboard: React.FC = () => {
   const { user } = useAuth();
-  const [profile, setProfile] = useState<any>(null);
   const [selectedView, setSelectedView] = useState("profile");
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // NEW
-  console.log(profile);
-
-  useEffect(() => {
-    const loadProfile = async () => {
-      if (isAdmin(user?.email)) {
-        setProfile(user);
-      }
-    };
-    loadProfile();
-  }, [user]);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const renderContent = () => {
     switch (selectedView) {
       case "profile":
-        return <AdminProfileCard />;
-      case "products":
-        return <Products />;
+        return <UserProfile />;
       case "orders":
-        return <Orders />;
-      case "users":
-        return <Users />;
+        return <UserOrders />;
+      case "settings":
+        return <AccountSettings />;
+      case "help":
+        return <HelpCenter />;
       default:
         return <div>Select a section from the sidebar.</div>;
     }
@@ -44,12 +30,10 @@ const AdminDashboard: React.FC = () => {
 
   return (
     <div>
-
       <Header onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
 
-
-      {/* Mobile sidebar overlay */}
-      <div className="flex h-screen bg-gray-100 relative overflow-hidden">
+      <div className="flex h-screen bg-gray-50 relative overflow-hidden">
+        {/* Overlay for mobile */}
         <div
           className={`fixed inset-0 bg-black bg-opacity-40 z-40 transition-opacity duration-300 ${isSidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
             } md:hidden`}
@@ -70,7 +54,7 @@ const AdminDashboard: React.FC = () => {
         </div>
 
         {/* Main content */}
-        <div className="flex-1 flex flex-col px-3 ">
+        <div className="flex-1 flex flex-col px-3">
           <div className="mt-5">{renderContent()}</div>
         </div>
       </div>
@@ -78,5 +62,4 @@ const AdminDashboard: React.FC = () => {
   );
 };
 
-
-export default AdminDashboard;
+export default UserDashboard;
