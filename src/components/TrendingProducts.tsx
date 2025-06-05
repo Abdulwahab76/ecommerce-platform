@@ -10,7 +10,19 @@ type ProductStats = {
     image: string;
 };
 
-const TRENDING_DAYS = 30;
+type OrderItem = {
+    id: string;
+    name: string;
+    quantity: number;
+    price?: number;
+    discountedPrice?: number;
+    image: string;
+};
+
+type Order = {
+    items: OrderItem[];
+    createdAt: Timestamp;
+};
 
 const TrendingProducts = () => {
     const [trending, setTrending] = useState<ProductStats[]>([]);
@@ -20,10 +32,10 @@ const TrendingProducts = () => {
         const fetchTrending = async () => {
             try {
                 const now = new Date();
-                const pastDate = new Date();
-                pastDate.setDate(now.getDate() - TRENDING_DAYS);
+                const pastDate = new Date(now.getTime() - 24 * 60 * 60 * 1000); //24 hours
+                // const pastDate = new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000); // 10 days ago
+                // const pastDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
 
-                // Query to get orders from the last 30 days
                 const ordersRef = collection(db, "orders");
                 const recentOrdersQuery = query(
                     ordersRef,
@@ -31,19 +43,35 @@ const TrendingProducts = () => {
                 );
 
                 const snapshot = await getDocs(recentOrdersQuery);
-                const orders = snapshot.docs.map(doc => doc.data());
+                const orders = snapshot.docs.map(doc => doc.data() as Order);
+
+                console.log("Fetched orders from last 24 hours:", orders);
 
                 const stats: Record<string, ProductStats> = {};
 
-                // Loop through all orders and accumulate product data
-                orders.forEach((order: any) => {
-                    order.items.forEach((item: any) => {
-                        const { id, name, quantity, price, image } = item;
+                orders.forEach((order, i) => {
+                    if (!order.items || !Array.isArray(order.items)) {
+                        console.warn(`Order ${i + 1} has no valid items.`);
+                        return;
+                    }
 
-                        // Make sure required fields exist
-                        if (!id || !name || !price || !image) {
-                            console.warn("Missing item data:", item);
-                            return; // Skip item if missing essential data
+                    console.log(`Order ${i + 1} createdAt:`, order.createdAt?.toDate());
+
+                    order.items.forEach(item => {
+                        const { id, name, quantity, discountedPrice, price: normalPrice, image } = item;
+
+                        const finalPrice = discountedPrice ?? normalPrice ?? 0;
+
+                        if (
+                            !id ||
+                            !name ||
+                            quantity === undefined ||
+                            quantity === null ||
+                            finalPrice === 0 ||
+                            !image
+                        ) {
+                            console.warn("Skipping incomplete item:", item);
+                            return;
                         }
 
                         if (!stats[id]) {
@@ -51,7 +79,7 @@ const TrendingProducts = () => {
                                 id,
                                 name,
                                 quantitySold: 0,
-                                price,
+                                price: finalPrice,
                                 image,
                             };
                         }
@@ -59,10 +87,13 @@ const TrendingProducts = () => {
                     });
                 });
 
-                // Sort products by quantity sold and get the top 6
+                console.log("Aggregated product stats:", stats);
+
                 const sorted = Object.values(stats)
                     .sort((a, b) => b.quantitySold - a.quantitySold)
                     .slice(0, 6);
+
+                console.log("Top trending products:", sorted);
 
                 setTrending(sorted);
             } catch (error) {
@@ -75,57 +106,60 @@ const TrendingProducts = () => {
         fetchTrending();
     }, []);
 
-    if (loading)
+    if (loading) {
         return (
-            <p className="text-gray-500 animate-pulse w-full mx-auto flex justify-center items-center text-center">
+            <p className="text-gray-500 animate-pulse w-full text-center py-10">
                 Loading trending products...
             </p>
         );
-    if (trending.length === 0)
+    }
+
+    if (trending.length === 0) {
         return (
-            <p className="text-gray-500 animate-pulse w-full mx-auto flex justify-center items-center text-center">
+            <p className="text-gray-500 w-full text-center py-10">
                 No trending products right now.
             </p>
         );
+    }
 
     return (
-        <div className="flex justify-center flex-col items-center py-10 w-full" id="top-trending">
-            <h2 className="text-2xl font-semibold mb-12 font-integral">Top Trending</h2>
+        <section id="top-trending" className="flex flex-col items-center py-10 w-full">
+            <h2 className="text-2xl font-bold mb-10 font-integral">
+                Top Trending Products
+            </h2>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {trending.map((product, ind) => {
-                    // Check if the image URL is valid and use `https`
-                    const imageUrl = product.image.startsWith('http') ? product.image : `https:${product.image}`;
+                {trending.map((product, index) => {
+                    const imageUrl = product.image.startsWith("http")
+                        ? product.image
+                        : `https:${product.image}`;
 
                     return (
                         <div
                             key={product.id}
-                            className="rounded-2xl min-w-[320px] p-10 hover:shadow-xl transition-shadow duration-300 ease-in-out cursor-pointer shadow-2xl"
+                            className="rounded-2xl min-w-[320px] p-10 hover:shadow-xl transition-shadow duration-300 ease-in-out cursor-pointer shadow-2xl relative" title={`Sold: ${product.quantitySold}`}
                         >
-                            <div className="relative p-5">
-                                <div className="absolute -top-8 -right-9 rounded-tr-2xl text-lg bg-gray-800 text-white font-bold px-4 py-1 z-10 h-10 flex items-center justify-center">
-                                    {ind + 1}
-                                </div>
+                            <div className="relative mb-4">
                                 <img
                                     src={imageUrl}
                                     alt={product.name}
                                     className="w-full h-48 object-cover rounded-lg"
                                 />
+                                <span className="absolute -top-8 -right-8 bg-black text-white text-xs font-bold px-2 py-2 rounded-tr-xl">
+                                    #{index + 1}
+                                </span>
                             </div>
-                            <h2 className="text-lg font-semibold text-gray-900">{product.name}</h2>
-
-                            <div className="flex justify-between flex-col items-start">
-                                <div className="flex justify-between w-full items-center">
-                                    <p className="text-lg text-gray-800">
-                                        Price: ${product.price.toFixed(2)}
-                                    </p>
-                                </div>
-                                <p className="text-sm text-green-600 mt-1 font-semibold">🔥 Trending now</p>
-                            </div>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2">{product.name}</h3>
+                            <p className="text-gray-700 mb-1">Sold: {product.quantitySold}</p>
+                            <p className="text-green-600 font-medium">${product.price.toFixed(2)}</p>
+                            {index === 0 && (
+                                <p className="text-red-600 font-bold mt-2 animate-pulse">🔥 Most Loved Product!</p>
+                            )}
                         </div>
                     );
                 })}
             </div>
-        </div>
+        </section>
     );
 };
 
