@@ -13,10 +13,7 @@ const ProductFilterPage: React.FC = () => {
     const itemsPerPage = 8;
 
     const totalPages = Math.ceil(filtered.length / itemsPerPage);
-    const paginatedItems = filtered.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
+
     useEffect(() => {
         const load = async () => {
             const data = await fetchProductsByFilters({});

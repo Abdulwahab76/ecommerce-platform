@@ -16,7 +16,8 @@ const AdminDashboard: React.FC = () => {
     const [profile, setProfile] = useState<any>(null);
     const [selectedView, setSelectedView] = useState("profile");
     const [isSidebarOpen, setIsSidebarOpen] = useState(false); // NEW
-   
+    console.log(profile);
+
     useEffect(() => {
         const loadProfile = async () => {
             if (isAdmin(user?.email)) {
