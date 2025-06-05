@@ -14,6 +14,7 @@ type Product = {
     description: string;
     discountPercent: number;
     discountedPrice?: number;
+    rating: number;
 };
 
 const ProductPage: React.FC = () => {
@@ -44,6 +45,7 @@ const ProductPage: React.FC = () => {
                 setLoading(false);
             });
     }, [slug]);
+    console.log(product, 'pro');
 
 
     if (loading) return <div className="p-10 text-center">Loading...</div>;
@@ -103,8 +105,15 @@ const ProductPage: React.FC = () => {
                         <p className="text-gray-700 text-lg  ">Instock: {product.inStock}</p>
                         <p className="text-gray-700 text-lg  ">Size: {product.sizes}</p>
                         <p className="text-gray-700 text-lg  ">Features: {product.features}</p>
-                        <p className="text-gray-700   text-sm bg-gray-200 shadow-md cursor-pointer py-2  w-16 text-center rounded-lg ">{product.tags}</p>
-
+                        {/* <p className="text-gray-700   text-sm bg-gray-200 shadow-md cursor-pointer py-2  w-16 text-center rounded-lg ">{product.tags}</p> */}
+                        {product.rating}
+                        <div className="flex items-center">
+                            {Array.from({ length: Math.floor(product.rating) }, (_, index) => (
+                                <span key={index} className="text-yellow-500">★</span>
+                            ))}
+                            {product.rating % 1 !== 0 && <span className="text-yellow-500">☆</span>}
+                            <span className="ml-2 text-gray-600">({product.rating.toFixed(1)})</span>
+                        </div>
                         {hasDiscount ? (
                             <>
                                 <span className="text-gray-800 font-bold text-2xl">PKR {product.discountedPrice}</span>

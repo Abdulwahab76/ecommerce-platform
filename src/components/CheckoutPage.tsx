@@ -55,13 +55,42 @@ const CheckoutPage: React.FC = () => {
 
         setLoading(true);
         try {
-            await setDoc(doc(db, "orders", user.uid + "_" + Date.now()), {
+            // 1. Save Order to Firebase
+            const orderId = user.uid + "_" + Date.now();
+            await setDoc(doc(db, "orders", orderId), {
                 ...form,
-                items: cart.map(({ id, name, quantity, discountedPrice, image, costPrice }) => ({ id, name, quantity, discountedPrice, image, costPrice })),
+                items: cart.map(({ id, name, quantity, discountedPrice, image, costPrice }) => ({
+                    id,
+                    name,
+                    quantity,
+                    discountedPrice,
+                    image,
+                    costPrice,
+                })),
                 total,
                 userId: user.uid,
                 createdAt: Timestamp.now(),
             });
+
+            // 2. Update stock in Contentful via Vercel Serverless Function
+            const res = await fetch("/api/updateStock", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    items: cart.map((item) => ({
+                        id: item.id, // Contentful entry ID
+                        quantity: item.quantity,
+                    })),
+                }),
+            });
+
+            const result = await res.json();
+            if (!res.ok) {
+                console.error("Stock update failed:", result.error);
+                alert("Order saved but failed to update stock.");
+            }
+
+            // 3. Clear cart and redirect
             clearCart();
             navigate("/success");
         } catch (err) {
@@ -109,7 +138,6 @@ const CheckoutPage: React.FC = () => {
                             onChange={handleChange}
                             className="w-full p-3 border rounded-lg shadow-sm"
                         />
-
                         <input
                             name="city"
                             placeholder="City"
@@ -166,7 +194,6 @@ const CheckoutPage: React.FC = () => {
                 </div>
             </div>
         </div>
-
     );
 };
 
