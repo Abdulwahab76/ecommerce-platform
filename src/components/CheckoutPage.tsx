@@ -1,3 +1,4 @@
+// CheckoutPage.tsx
 import React, { useEffect, useState } from "react";
 import { useCartStore } from "../store/useCartStore";
 import { useNavigate } from "react-router-dom";
@@ -7,24 +8,62 @@ import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { ChevronLeftIcon } from "lucide-react";
 import { updateProductStock } from "../hooks/contentfulManagement";
 
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+
+import {
+    CountrySelect,
+    StateSelect,
+    CitySelect,
+} from "react-country-state-city";
+import "react-country-state-city/dist/react-country-state-city.css";
+import type { City, Country, State } from "react-country-state-city/dist/esm/types";
+
+const schema = yup.object({
+    name: yup.string().required("Name is required"),
+    email: yup.string().email("Invalid email").required("Email is required"),
+    phone: yup
+        .string()
+        .required("Phone number is required")
+        .matches(/^\+92[0-9]{10}$/, "Phone number must be in format +92XXXXXXXXXX"),
+    country: yup.string().required("Country is required"),
+    state: yup.string().required("State is required"),
+    city: yup.string().required("City is required"),
+    address1: yup.string().required("Address is required"),
+    zip: yup.string().required("ZIP Code is required"),
+});
+
+type FormData = yup.InferType<typeof schema>;
+
 const CheckoutPage: React.FC = () => {
     const cart = useCartStore((s) => s.cart);
     const clearCart = useCartStore((s) => s.clearCart);
+    const increaseQty = useCartStore((s) => s.increaseQty);
+    const decreaseQty = useCartStore((s) => s.decreaseQty);
+    const removeFromCart = useCartStore((s) => s.removeFromCart);
     const total = useCartStore((s) => s.total)();
     const navigate = useNavigate();
 
-    const [form, setForm] = useState({
-        name: "",
-        email: "",
-        address1: "",
-        city: "",
-        state: "",
-        country: "",
-        zip: "",
+    const [user, setUser] = useState<any>(null);
+    const [loading, setLoading] = useState(false);
+
+    // States for selects
+    const [country, setCountry] = useState<any>(null);
+    const [state, setState] = useState<any>(null);
+    const [city, setCity] = useState<any>(null);
+
+    const {
+        register,
+
+        handleSubmit,
+        setValue,
+        formState: { errors, isValid },
+    } = useForm<FormData>({
+        resolver: yupResolver(schema),
+        mode: "onChange",
     });
 
-    const [loading, setLoading] = useState(false);
-    const [user, setUser] = useState<any>(null);
 
     useEffect(() => {
         const auth = getAuth();
@@ -33,43 +72,50 @@ const CheckoutPage: React.FC = () => {
                 navigate("/login");
             } else {
                 setUser(currentUser);
-                setForm((f) => ({
-                    ...f,
-                    name: currentUser.displayName || "",
-                    email: currentUser.email || "",
-                }));
+                setValue("name", currentUser.displayName || "");
+                setValue("email", currentUser.email || "");
             }
         });
 
         return () => unsubscribe();
-    }, [navigate]);
+    }, [navigate, setValue]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+    const validateStock = () => {
+        for (const item of cart) {
+            if (item.inStock === 0) {
+                alert(`"${item.name}" is out of stock.`);
+                return false;
+            }
+            if (item.quantity > item.inStock) {
+                alert(`"${item.name}" quantity exceeds stock.`);
+                return false;
+            }
+        }
+        return true;
     };
 
-
-    const handleSubmit = async () => {
-        if (!form.name || !form.email || !form.address1 || !form.city || !form.state || !form.zip || !form.country) {
-            alert("Please fill all fields.");
-            return;
-        }
+    const onSubmit = async (data: FormData) => {
+        if (!validateStock()) return;
 
         setLoading(true);
         try {
-            // First update inventory in Contentful
-            const inventoryUpdates = cart.map(item =>
+            const inventoryUpdates = cart.map((item) =>
                 updateProductStock(item.id, item.inStock - item.quantity)
             );
-
             await Promise.all(inventoryUpdates);
 
-            // Then create the order in Firebase
             await setDoc(doc(db, "orders", user.uid + "_" + Date.now()), {
-                ...form,
-                items: cart.map(({ id, name, quantity, discountedPrice, image, costPrice }) => ({
-                    id, name, quantity, discountedPrice, image, costPrice
-                })),
+                ...data,
+                items: cart.map(
+                    ({ id, name, quantity, discountedPrice, image, costPrice }) => ({
+                        id,
+                        name,
+                        quantity,
+                        discountedPrice,
+                        image,
+                        costPrice,
+                    })
+                ),
                 total,
                 userId: user.uid,
                 createdAt: Timestamp.now(),
@@ -84,101 +130,190 @@ const CheckoutPage: React.FC = () => {
             setLoading(false);
         }
     };
+
     return (
         <div className="px-3 md:px-20">
             <div
-                className="w-10 h-10 bg-gray-100 border-gray-100 border flex justify-center items-center rounded-full text-gray-400 my-4 hover:bg-white transition-colors cursor-pointer"
+                className="w-10 h-10 bg-gray-100 border flex justify-center items-center rounded-full text-gray-400 my-4 hover:bg-white cursor-pointer"
                 onClick={() => navigate(-1)}
             >
                 <ChevronLeftIcon />
             </div>
-            <div className="max-w-6xl mx-auto px-4 py-10 w-full">
 
+            <div className="max-w-6xl mx-auto px-4 py-10 w-full">
                 <h2 className="text-3xl font-semibold mb-6">Checkout</h2>
 
                 <div className="grid md:grid-cols-2 gap-8">
-                    {/* Customer Info */}
-                    <div className="space-y-6">
+                    {/* Checkout Form */}
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
                         <input
-                            name="name"
+                            {...register("name")}
                             placeholder="Full Name"
-                            value={form.name}
-                            onChange={handleChange}
-                            className="w-full p-3 border rounded-lg shadow-sm"
+                            className={`w-full p-3 border rounded-lg ${errors.name ? "border-red-500" : ""
+                                }`}
                         />
-                        <input
-                            name="email"
-                            placeholder="Email"
-                            value={form.email}
-                            onChange={handleChange}
-                            className="w-full p-3 border rounded-lg shadow-sm"
-                            disabled
-                        />
-                        <input
-                            name="address1"
-                            placeholder="Address Line 1"
-                            value={form.address1}
-                            onChange={handleChange}
-                            className="w-full p-3 border rounded-lg shadow-sm"
-                        />
+                        {errors.name && (
+                            <p className="text-red-600 text-sm">{errors.name.message}</p>
+                        )}
 
                         <input
-                            name="city"
-                            placeholder="City"
-                            value={form.city}
-                            onChange={handleChange}
-                            className="w-full p-3 border rounded-lg shadow-sm"
+                            {...register("email")}
+                            disabled
+                            placeholder="Email"
+                            className="w-full p-3 border rounded-lg bg-gray-100"
                         />
+
+
                         <input
-                            name="state"
-                            placeholder="State"
-                            value={form.state}
-                            onChange={handleChange}
-                            className="w-full p-3 border rounded-lg shadow-sm"
+                            {...register("phone")}
+                            placeholder="phone number"
+                            className={`w-full p-3 border rounded-lg ${errors.phone ? "border-red-500" : ""
+                                }`}
                         />
+                        {errors.phone && (
+                            <p className="text-red-600 text-sm">{errors.phone.message}</p>
+                        )}
+
+                        <div>
+
+                            <CountrySelect
+                                onChange={(c) => {
+                                    setCountry(c);
+                                    setValue("country", (c as Country)?.name || "");
+                                    setState(null);
+                                    setCity(null);
+                                    setValue("state", "");
+                                    setValue("city", "");
+
+                                }}
+                                placeHolder="Select Country"
+                                defaultValue={country}
+                                containerClassName="mb-2"
+                                inputClassName={`w-full p-3 border rounded-lg ${errors.country ? "border-red-500" : ""
+                                    }`}
+                            />
+                            {errors.country && (
+                                <p className="text-red-600 text-sm">{errors.country.message}</p>
+                            )}
+                        </div>
+
+                        <div>
+
+                            <StateSelect
+                                countryid={country?.id}
+                                onChange={(s) => {
+                                    setState(s);
+                                    setValue("state", (s as State)?.name || "");
+                                    setCity(null);
+                                    setValue("city", "");
+                                }}
+                                placeHolder="Select State"
+                                defaultValue={state}
+                                containerClassName="mb-2"
+                                inputClassName={`w-full p-3 border rounded-lg ${errors.state ? "border-red-500" : ""
+                                    }`}
+                            />
+                            {errors.state && (
+                                <p className="text-red-600 text-sm">{errors.state.message}</p>
+                            )}
+                        </div>
+
+                        <div>
+
+                            <CitySelect
+                                countryid={country?.id}
+                                stateid={state?.id}
+                                onChange={(c) => {
+                                    setCity(c);
+                                    setValue("city", (c as City)?.name || "");
+                                }}
+                                placeHolder="Select City"
+                                defaultValue={city}
+                                containerClassName="mb-2"
+                                inputClassName={`w-full p-3 border rounded-lg ${errors.city ? "border-red-500" : ""
+                                    }`}
+                            />
+                            {errors.city && (
+                                <p className="text-red-600 text-sm">{errors.city.message}</p>
+                            )}
+                        </div>
+
                         <input
-                            name="country"
-                            placeholder="Country"
-                            value={form.country}
-                            onChange={handleChange}
-                            className="w-full p-3 border rounded-lg shadow-sm"
+                            {...register("address1")}
+                            placeholder="Address"
+                            className={`w-full p-3 border rounded-lg ${errors.address1 ? "border-red-500" : ""
+                                }`}
                         />
+                        {errors.address1 && (
+                            <p className="text-red-600 text-sm">{errors.address1.message}</p>
+                        )}
+
                         <input
-                            name="zip"
+                            {...register("zip")}
                             placeholder="ZIP Code"
-                            value={form.zip}
-                            onChange={handleChange}
-                            className="w-full p-3 border rounded-lg shadow-sm"
+                            className={`w-full p-3 border rounded-lg ${errors.zip ? "border-red-500" : ""
+                                }`}
                         />
+                        {errors.zip && (
+                            <p className="text-red-600 text-sm">{errors.zip.message}</p>
+                        )}
+
                         <button
-                            onClick={handleSubmit}
-                            disabled={loading}
-                            className="w-full bg-black text-white py-3 rounded-lg shadow-md hover:bg-gray-800 transition duration-300"
+                            type="submit"
+                            disabled={loading || !isValid}
+                            className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition disabled:opacity-50"
                         >
                             {loading ? "Placing Order..." : "Place Order"}
                         </button>
-                    </div>
+                    </form>
 
                     {/* Cart Summary */}
                     <div className="space-y-4">
                         <h3 className="text-xl font-semibold">Your Items:</h3>
-                        <ul className="space-y-2">
+                        <ul className="space-y-3 max-h-[400px] overflow-y-auto">
                             {cart.map((item) => (
-                                <li key={item.id} className="flex justify-between border-b py-2">
-                                    <span>{item.name} x {item.quantity}</span>
-                                    <span>${item.discountedPrice * item.quantity}</span>
+                                <li
+                                    key={item.id}
+                                    className="flex items-center justify-between border-b py-2"
+                                >
+                                    <div>
+                                        <p>{item.name}</p>
+                                        <p className="text-sm text-gray-500">In stock: {item.inStock}</p>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <button
+                                            onClick={() => decreaseQty(item.id)}
+                                            className="px-2 bg-gray-200 rounded"
+                                        >
+                                            −
+                                        </button>
+                                        <span>{item.quantity}</span>
+                                        <button
+                                            onClick={() =>
+                                                item.quantity < item.inStock && increaseQty(item.id)
+                                            }
+                                            className="px-2 bg-gray-200 rounded"
+                                        >
+                                            +
+                                        </button>
+                                        <button
+                                            onClick={() => removeFromCart(item.id)}
+                                            className="ml-2 text-red-500 text-sm"
+                                        >
+                                            Remove
+                                        </button>
+                                    </div>
                                 </li>
                             ))}
                         </ul>
-                        <div className="flex justify-between font-semibold">
+                        <div className="flex justify-between font-semibold pt-2 border-t">
                             <span>Total</span>
-                            <span>${total}</span>
+                            <span>PKR {total.toFixed(2)}</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
     );
 };
 
