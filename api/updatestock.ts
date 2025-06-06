@@ -1,11 +1,11 @@
 import { createClient } from "contentful-management";
 
-const contentfulAccessToken = import.meta.env.CONTENTFUL_MANAGEMENT_API_KEY;
-const spaceId = import.meta.env.CONTENTFUL_SPACE_ID;
-const environmentId = import.meta.env.CONTENTFUL_ENVIRONMENT_ID;
+const contentfulAccessToken = process.env.CONTENTFUL_MANAGEMENT_API_KEY!;
+const spaceId = process.env.CONTENTFUL_SPACE_ID!;
+const environmentId = process.env.CONTENTFUL_ENVIRONMENT_ID!;
 
 const client = createClient({
-    accessToken: contentfulAccessToken!,
+    accessToken: contentfulAccessToken,
 });
 
 const handler = async (req: any, res: any) => {
@@ -20,8 +20,8 @@ const handler = async (req: any, res: any) => {
     }
 
     try {
-        const space = await client.getSpace(spaceId!);
-        const environment = await space.getEnvironment(environmentId!);
+        const space = await client.getSpace(spaceId);
+        const environment = await space.getEnvironment(environmentId);
 
         const updatePromises = items.map(async (item: { id: string; quantity: number }) => {
             const entry = await environment.getEntry(item.id);

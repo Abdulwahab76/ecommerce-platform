@@ -83,6 +83,7 @@ const CheckoutPage: React.FC = () => {
                 }),
             });
 
+
             if (!res.ok) {
                 const error = await res.json();
                 console.error("Failed to update stock:", error);
