@@ -1,15 +1,14 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createClient } from "contentful-management";
 
-const contentfulAccessToken = process.env.CONTENTFUL_MANAGEMENT_API_KEY;
-const spaceId = process.env.CONTENTFUL_SPACE_ID;
-const environmentId = process.env.CONTENTFUL_ENVIRONMENT_ID;
+const contentfulAccessToken = import.meta.env.CONTENTFUL_MANAGEMENT_API_KEY;
+const spaceId = import.meta.env.CONTENTFUL_SPACE_ID;
+const environmentId = import.meta.env.CONTENTFUL_ENVIRONMENT_ID;
 
 const client = createClient({
     accessToken: contentfulAccessToken!,
 });
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+const handler = async (req: any, res: any) => {
     if (req.method !== "POST") {
         return res.status(405).json({ error: "Method not allowed" });
     }
@@ -47,4 +46,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         console.error("Error updating stock:", error.message);
         res.status(500).json({ error: "Failed to update stock" });
     }
-}
+};
+
+export default handler;
