@@ -55,41 +55,13 @@ const CheckoutPage: React.FC = () => {
 
         setLoading(true);
         try {
-            // Save order in Firestore
             await setDoc(doc(db, "orders", user.uid + "_" + Date.now()), {
                 ...form,
-                items: cart.map(({ id, name, quantity, discountedPrice, image, costPrice }) => ({
-                    id,
-                    name,
-                    quantity,
-                    discountedPrice,
-                    image,
-                    costPrice,
-                })),
+                items: cart.map(({ id, name, quantity, discountedPrice, image, costPrice }) => ({ id, name, quantity, discountedPrice, image, costPrice })),
                 total,
                 userId: user.uid,
                 createdAt: Timestamp.now(),
             });
-
-            // Update stock in Contentful
-            const res = await fetch("/api/updatestock", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    items: cart.map((item) => ({
-                        id: item.id,
-                        quantity: item.quantity,
-                    })),
-                }),
-            });
-
-
-            if (!res.ok) {
-                const error = await res.json();
-                console.error("Failed to update stock:", error);
-                alert("Order saved, but failed to update stock.");
-            }
-
             clearCart();
             navigate("/success");
         } catch (err) {
