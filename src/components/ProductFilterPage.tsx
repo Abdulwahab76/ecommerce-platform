@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { fetchProductsByFilters, type ProductT } from "../services/contentful";
+import { fetchProducts, type ProductT } from "../services/contentful";
 import { useAdvancedProductFilter } from "../hooks/useAdvancedProductFilter";
 import FilterSidebar from "./filters/FilterSidebar";
 import ProductCard from "./ProductCard";
@@ -7,7 +7,7 @@ import Pagination from "./Pagination";
 
 const ProductFilterPage: React.FC = () => {
     const [allProducts, setAllProducts] = useState<ProductT[]>([]);
-    const { filtered, filters, setFilters } = useAdvancedProductFilter(allProducts, "shoes");
+    const { filtered, filters, setFilters } = useAdvancedProductFilter(allProducts, "all");
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
@@ -15,22 +15,23 @@ const ProductFilterPage: React.FC = () => {
     const totalPages = Math.ceil(filtered.length / itemsPerPage);
 
     useEffect(() => {
-        const load = async () => {
-            const data = await fetchProductsByFilters({});
+        const loadProducts = async () => {
+            const data = await fetchProducts(); // Fetch all products
             setAllProducts(data);
             setLoading(false);
         };
-        load();
+        loadProducts();
     }, []);
 
-    return (
-        <div className="flex  md:flex-row flex-col mx-auto px-12 py-10 gap-6  flex-1/2 ">
-            {/* Sidebar Filters */}
+    const paginatedProducts = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
+    return (
+        <div className="flex md:flex-row flex-col mx-auto px-12 py-10 gap-6">
+            {/* Sidebar Filters */}
             <FilterSidebar filters={filters} setFilters={setFilters} />
 
             {/* Product Grid */}
-            <main className="w-3/4 h-full">
+            <main className="w-3/4">
                 <h2 className="text-xl font-bold mb-4">
                     Showing {filtered.length} {filtered.length === 1 ? "item" : "items"}
                 </h2>
@@ -38,13 +39,12 @@ const ProductFilterPage: React.FC = () => {
                 {loading ? (
                     <p>Loading...</p>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-4 gap-6">
-                        {filtered.map((product) => (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        {paginatedProducts.map((product) => (
                             <ProductCard {...product} key={product.id} />
                         ))}
                     </div>
                 )}
-
 
                 <Pagination
                     currentPage={currentPage}
