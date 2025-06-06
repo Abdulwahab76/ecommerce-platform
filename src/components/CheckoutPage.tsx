@@ -48,24 +48,15 @@ const CheckoutPage: React.FC = () => {
     };
 
     const handleSubmit = async () => {
-        if (
-            !form.name ||
-            !form.email ||
-            !form.address1 ||
-            !form.city ||
-            !form.state ||
-            !form.zip ||
-            !form.country
-        ) {
+        if (!form.name || !form.email || !form.address1 || !form.city || !form.state || !form.zip || !form.country) {
             alert("Please fill all fields.");
             return;
         }
 
         setLoading(true);
         try {
-            const orderId = user.uid + "_" + Date.now();
-
-            await setDoc(doc(db, "orders", orderId), {
+            // Save order in Firestore
+            await setDoc(doc(db, "orders", user.uid + "_" + Date.now()), {
                 ...form,
                 items: cart.map(({ id, name, quantity, discountedPrice, image, costPrice }) => ({
                     id,
@@ -80,8 +71,8 @@ const CheckoutPage: React.FC = () => {
                 createdAt: Timestamp.now(),
             });
 
-            // Call Vercel API to update stock
-            const res = await fetch("/api/updateStock", {
+            // Update stock in Contentful
+            const res = await fetch("/api/updatestock", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -92,15 +83,9 @@ const CheckoutPage: React.FC = () => {
                 }),
             });
 
-            let result = {};
-            try {
-                result = await res.json();
-            } catch (e) {
-                console.warn("No JSON returned from updateStock");
-            }
-
             if (!res.ok) {
-                console.error("Stock update failed:", result);
+                const error = await res.json();
+                console.error("Failed to update stock:", error);
                 alert("Order saved, but failed to update stock.");
             }
 
@@ -113,7 +98,6 @@ const CheckoutPage: React.FC = () => {
             setLoading(false);
         }
     };
-
 
     return (
         <div className="px-3 md:px-20">
@@ -152,6 +136,7 @@ const CheckoutPage: React.FC = () => {
                             onChange={handleChange}
                             className="w-full p-3 border rounded-lg shadow-sm"
                         />
+
                         <input
                             name="city"
                             placeholder="City"
@@ -208,6 +193,7 @@ const CheckoutPage: React.FC = () => {
                 </div>
             </div>
         </div>
+
     );
 };
 

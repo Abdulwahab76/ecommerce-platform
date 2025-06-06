@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchProductsBySearch, type ProductT } from "../services/contentful";
+import { Search } from "lucide-react";
 // import { ProductT, fet } from
 
 const ProductSearchDropdown = ({ toggleSearch }: any) => {
@@ -56,21 +57,26 @@ const ProductSearchDropdown = ({ toggleSearch }: any) => {
     return (
         <div className={`${toggleSearch ? 'flex w-10/12' : 'hidden'} 
         w-6/12 ${!toggleSearch ? 'lg:flex' : ''} 
-        ${toggleSearch ? 'absolute top-26 max-w-full px-4' : ''}`} ref={dropdownRef}>
-            <input
-                type="text"
-                value={query}
-                onChange={(e) => {
-                    setQuery(e.target.value);
-                    setShowDropdown(true);
-                }}
-                ref={inputRef}
-                placeholder="Search products..."
-                className="w-full px-4 py-3  bg-gray-100 outline-none focus:border-none rounded-full shadow-sm focus:outline-none  "
-            />
+        ${toggleSearch ? 'absolute top-26 max-w-full px-4 w-full' : ''}`} ref={dropdownRef}>
+            <div className="flex items-center bg-gray-100 w-10/12 md:w-full rounded-full shadow-sm  px-4">
+                <Search className="text-gray-400"/>
+                <input
+                    type="text"
+                    value={query}
+                    onChange={(e) => {
+                        setQuery(e.target.value);
+                        setShowDropdown(true);
+                    }}
+                    ref={inputRef}
+                    placeholder="Search products..."
+                    className="  px-4 py-3  bg-gray-100 outline-none  rounded-full focus:outline-none  "
+                />
+
+            </div>
+
 
             {showDropdown && query && (
-                <div className={`absolute z-50 w-full bg-white max-w-xs md:max-w-md ${toggleSearch ? 'mt-14' : 'mt-2'} rounded-lg shadow-lg max-h-64 overflow-y-auto border border-gray-200`}>
+                <div className={`absolute z-50 w-full bg-white max-w-xs md:max-w-md ${toggleSearch ? 'mt-14' : 'mt-2 top-20'} rounded-lg shadow-lg max-h-64 overflow-y-auto border border-gray-200`}>
                     {loading && <div className="p-3 text-gray-500 text-sm">Searching...</div>}
 
                     {!loading && results.length === 0 && (

@@ -125,7 +125,7 @@ const TrendingProducts = () => {
     return (
         <section id="top-trending" className="flex flex-col items-center py-10 w-full">
             <h2 className="text-2xl font-bold mb-10 font-integral">
-                Top Trending Products
+                Top Trending
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

@@ -1,36 +1,50 @@
-import { type VercelRequest, type VercelResponse } from '@vercel/node';
-import { createClient } from 'contentful-management';
+import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { createClient } from "contentful-management";
 
-const SPACE_ID = import.meta.env.CONTENTFUL_SPACE_ID!;
-const ACCESS_TOKEN = import.meta.env.CONTENTFUL_MANAGEMENT_TOKEN!;
+const contentfulAccessToken = process.env.CONTENTFUL_MANAGEMENT_API_KEY;
+const spaceId = process.env.CONTENTFUL_SPACE_ID;
+const environmentId = process.env.CONTENTFUL_ENVIRONMENT_ID;
 
-const client = createClient({ accessToken: ACCESS_TOKEN });
+const client = createClient({
+    accessToken: contentfulAccessToken!,
+});
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-    if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
+    if (req.method !== "POST") {
+        return res.status(405).json({ error: "Method not allowed" });
+    }
 
     const { items } = req.body;
 
+    if (!items || !Array.isArray(items)) {
+        return res.status(400).json({ error: "Invalid request body" });
+    }
+
     try {
-        const space = await client.getSpace(SPACE_ID);
-        const env = await space.getEnvironment('master');
+        const space = await client.getSpace(spaceId!);
+        const environment = await space.getEnvironment(environmentId!);
 
-        for (const item of items) {
-            const entry = await env.getEntry(item.id);
-            const stock = entry.fields.inStock['en-US'] || 0;
+        const updatePromises = items.map(async (item: { id: string; quantity: number }) => {
+            const entry = await environment.getEntry(item.id);
 
-            if (stock < item.quantity) {
-                return res.status(400).json({ error: `Insufficient stock for ${entry.fields.name['en-US']}` });
+            if (!entry.fields.inStock) {
+                throw new Error(`Entry ${item.id} does not have an inStock field.`);
             }
 
-            entry.fields.inStock['en-US'] = stock - item.quantity;
+            const currentStock = entry.fields.inStock["en-US"] || 0;
+            const updatedStock = Math.max(currentStock - item.quantity, 0);
+
+            entry.fields.inStock["en-US"] = updatedStock;
+
             await entry.update();
             await entry.publish();
-        }
+        });
 
-        res.status(200).json({ success: true });
-    } catch (e) {
-        console.error(e);
-        res.status(500).json({ error: 'Stock update failed' });
+        await Promise.all(updatePromises);
+
+        res.status(200).json({ message: "Stock updated successfully" });
+    } catch (error: any) {
+        console.error("Error updating stock:", error.message);
+        res.status(500).json({ error: "Failed to update stock" });
     }
 }
