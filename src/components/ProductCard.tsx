@@ -8,14 +8,14 @@ const ProductCard: React.FC<ProductT> = ({ name, price, image, slug, discountPer
     const hasDiscount = discountPercent && discountPercent > 0;
 
     return (
-        <div className="rounded-2xl min-w-[320px] p-10 hover:shadow-xl transition-shadow duration-300 ease-in-out cursor-pointer shadow-2xl relative">
+        <div className="rounded-2xl   p-10 hover:shadow-xl transition-shadow duration-300 ease-in-out cursor-pointer shadow-2xl relative">
             <div className="relative p-5">
                 {hasDiscount && (
                     <div className="absolute -top-4 -right-4 bg-gray-800 text-white text-xs font-bold px-2 py-1 rounded-full z-10">
                         {discountPercent}% OFF
                     </div>
                 )}
-                <img src={image} alt={name} className="w-full h-48 object-cover rounded-lg" />
+                <img src={image} alt={name} className="w-full h-48 object-contain object-center   rounded-lg" />
             </div>
 
             <h2 className="mt-2 text-2xl capitalize font-semibold">{name}</h2>

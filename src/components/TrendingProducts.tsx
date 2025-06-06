@@ -143,7 +143,7 @@ const TrendingProducts = () => {
                                 <img
                                     src={imageUrl}
                                     alt={product.name}
-                                    className="w-full h-48 object-cover rounded-lg"
+                                    className="w-full h-48 object-contain object-center rounded-lg"
                                 />
                                 <span className="absolute -top-8 -right-8 bg-black text-white text-xs font-bold px-2 py-2 rounded-tr-xl">
                                     #{index + 1}
@@ -151,7 +151,7 @@ const TrendingProducts = () => {
                             </div>
                             <h3 className="text-lg font-semibold text-gray-900 mb-2">{product.name}</h3>
                             <p className="text-gray-700 mb-1">Sold: {product.quantitySold}</p>
-                            <p className="text-green-600 font-medium">${product.price.toFixed(2)}</p>
+                            <p className="text-green-600 font-medium">PKR {product.price.toFixed(2)}</p>
                             {index === 0 && (
                                 <p className="text-red-600 font-bold mt-2 animate-pulse">🔥 Most Loved Product!</p>
                             )}

@@ -120,7 +120,7 @@ const TopSellingProducts = () => {
                         <img
                             src={product.image}
                             alt={product.name}
-                            className="w-full h-48 object-cover rounded-lg mb-4"
+                            className="w-full h-48 object-contain object-center rounded-lg mb-4"
                         />
                         <h3 className="text-lg font-bold mb-1">{product.name}</h3>
                         <p className="text-sm text-gray-600 mb-1">Sold: {product.quantitySold}</p>
