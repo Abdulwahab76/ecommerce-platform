@@ -5,6 +5,7 @@ import { db } from "../services/firebase";
 import { setDoc, doc, Timestamp } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { ChevronLeftIcon } from "lucide-react";
+import { updateProductStock } from "../hooks/contentfulManagement";
 
 const CheckoutPage: React.FC = () => {
     const cart = useCartStore((s) => s.cart);
@@ -47,6 +48,7 @@ const CheckoutPage: React.FC = () => {
         setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
     };
 
+
     const handleSubmit = async () => {
         if (!form.name || !form.email || !form.address1 || !form.city || !form.state || !form.zip || !form.country) {
             alert("Please fill all fields.");
@@ -55,23 +57,33 @@ const CheckoutPage: React.FC = () => {
 
         setLoading(true);
         try {
+            // First update inventory in Contentful
+            const inventoryUpdates = cart.map(item =>
+                updateProductStock(item.id, item.inStock - item.quantity)
+            );
+
+            await Promise.all(inventoryUpdates);
+
+            // Then create the order in Firebase
             await setDoc(doc(db, "orders", user.uid + "_" + Date.now()), {
                 ...form,
-                items: cart.map(({ id, name, quantity, discountedPrice, image, costPrice }) => ({ id, name, quantity, discountedPrice, image, costPrice })),
+                items: cart.map(({ id, name, quantity, discountedPrice, image, costPrice }) => ({
+                    id, name, quantity, discountedPrice, image, costPrice
+                })),
                 total,
                 userId: user.uid,
                 createdAt: Timestamp.now(),
             });
+
             clearCart();
             navigate("/success");
         } catch (err) {
             console.error("Order Error:", err);
-            alert("Failed to place order.");
+            alert("Failed to place order. " + (err as Error).message);
         } finally {
             setLoading(false);
         }
     };
-
     return (
         <div className="px-3 md:px-20">
             <div

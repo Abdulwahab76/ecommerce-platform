@@ -26,12 +26,12 @@ const ProductFilterPage: React.FC = () => {
     const paginatedProducts = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     return (
-        <div className="flex md:flex-row flex-col mx-auto px-12 py-10 gap-6">
+        <div className="flex md:flex-row flex-col mx-auto px-12 py-10 gap-6  ">
             {/* Sidebar Filters */}
             <FilterSidebar filters={filters} setFilters={setFilters} />
 
             {/* Product Grid */}
-            <main className="w-3/4">
+            <main className="w-3/4       ">
                 <h2 className="text-xl font-bold mb-4">
                     Showing {filtered.length} {filtered.length === 1 ? "item" : "items"}
                 </h2>
@@ -46,12 +46,15 @@ const ProductFilterPage: React.FC = () => {
                     </div>
                 )}
 
+
+            </main>
+            <div className="flex justify-center items-end ml-auto  ">
                 <Pagination
                     currentPage={currentPage}
                     totalPages={totalPages}
                     onPageChange={(page) => setCurrentPage(page)}
                 />
-            </main>
+            </div>
         </div>
     );
 };
