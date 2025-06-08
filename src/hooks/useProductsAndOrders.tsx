@@ -12,29 +12,46 @@ export const useProducts = (dateRange: { startDate: Date; endDate: Date }) => {
         const loadData = async () => {
             setLoading(true);
             try {
-                // Fetch products from Contentful
-                const fetchedProducts = await fetchProducts();
-                setProducts(fetchedProducts);
+                // 1️⃣ Fetch all products from Contentful (always all)
+                const allProducts = await fetchProducts();
 
-                // Fetch orders filtered by date range
+                // 2️⃣ Fetch all orders from Firestore if you want to update stock
                 const ordersRef = collection(db, "orders");
                 const snapshot = await getDocs(ordersRef);
-                const filteredOrders = snapshot.docs
-                    .map(doc => ({ id: doc.id, ...(doc.data() as any) }))
-                    .filter(order => {
-                        const orderDate = order.createdAt?.toDate
-                            ? order.createdAt.toDate()
-                            : order.createdAt instanceof Date
-                                ? order.createdAt
-                                : new Date(order.createdAt?.seconds * 1000);
+                const allOrders = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...(doc.data() as any)
+                }));
 
-                        return (
-                            orderDate >= dateRange.startDate &&
-                            orderDate <= dateRange.endDate
-                        );
-                    });
+                // 3️⃣ Filter orders by dateRange, so we only consider recent orders to update stock
+                const filteredOrders = allOrders.filter(order => {
+                    const rawDate = order.createdAt;
+                    let orderDate: Date;
+
+                    if (!rawDate) return false;
+                    if (typeof rawDate.toDate === "function") {
+                        orderDate = rawDate.toDate();
+                    } else if (rawDate instanceof Date) {
+                        orderDate = rawDate;
+                    } else if (rawDate?.seconds) {
+                        orderDate = new Date(rawDate.seconds * 1000);
+                    } else {
+                        return false;
+                    }
+
+                    const start = new Date(dateRange.startDate);
+                    start.setHours(0, 0, 0, 0);
+                    const end = new Date(dateRange.endDate);
+                    end.setHours(23, 59, 59, 999);
+
+                    return orderDate >= start && orderDate <= end;
+                });
 
                 setOrders(filteredOrders);
+
+                // 4️⃣ Do NOT filter products by sold items — show all products from Contentful
+                setProducts(allProducts);
+
             } catch (error) {
                 console.error("Error loading products or orders:", error);
             } finally {
@@ -45,17 +62,23 @@ export const useProducts = (dateRange: { startDate: Date; endDate: Date }) => {
         loadData();
     }, [dateRange]);
 
-    // Calculate updated stock for each product
+    // getUpdatedStock subtracts sold quantity from initial stock if orders exist
     const getUpdatedStock = (productId: string, initialStock: number) => {
-        let totalQuantitySold = 0;
+        if (!orders || orders.length === 0) {
+            return initialStock;
+        }
+
+        let totalSold = 0;
         orders.forEach(order => {
             order.items?.forEach((item: any) => {
                 if (item.id === productId) {
-                    totalQuantitySold += item.quantity;
+                    totalSold += item.quantity;
                 }
             });
         });
-        return initialStock - totalQuantitySold;
+
+        const updatedStock = initialStock - totalSold;
+        return updatedStock >= 0 ? updatedStock : 0;
     };
 
     return { products, loading, getUpdatedStock, setProducts };

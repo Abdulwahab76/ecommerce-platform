@@ -34,7 +34,7 @@ export const CartDrawer = () => {
                                 <img src={item.image} alt={item.name} className="w-16 h-16 rounded object-cover" />
                                 <div className="flex-1">
                                     <h3 className="font-semibold">{item.name}</h3>
-                                    <p>${item.discountedPrice.toFixed(2)}</p>
+                                    <p>PKR {item.discountedPrice.toFixed(2)}</p>
                                     <div className="flex items-center gap-2 mt-1">
                                         <button
                                             onClick={() => decreaseQty(item.id)}

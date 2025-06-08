@@ -104,9 +104,8 @@ const ProductPage: React.FC = () => {
                         <h1 className="text-4xl font-bold capitalize  ">{product.name}</h1>
                         <p className="text-gray-700 text-lg  ">Instock: {product.inStock}</p>
                         <p className="text-gray-700 text-lg  ">Size: {product.sizes}</p>
-                        <p className="text-gray-700 text-lg  ">Features: {product.features}</p>
-                        {/* <p className="text-gray-700   text-sm bg-gray-200 shadow-md cursor-pointer py-2  w-16 text-center rounded-lg ">{product.tags}</p> */}
-                        {product.rating}
+                        {product.features == ' ' && <p className="text-gray-700 text-lg  ">Features: {product.features}</p>}
+
                         <div className="flex items-center">
                             {Array.from({ length: Math.floor(product.rating) }, (_, index) => (
                                 <span key={index} className="text-yellow-500">★</span>
