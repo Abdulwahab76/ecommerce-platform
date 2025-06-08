@@ -38,7 +38,7 @@ type FormData = yup.InferType<typeof schema>;
 
 const CheckoutPage: React.FC = () => {
     const cart = useCartStore((s) => s.cart);
-    const clearCart = useCartStore((s) => s.clearCart);
+    // const clearCart = useCartStore((s) => s.clearCart);
     const increaseQty = useCartStore((s) => s.increaseQty);
     const decreaseQty = useCartStore((s) => s.decreaseQty);
     const removeFromCart = useCartStore((s) => s.removeFromCart);

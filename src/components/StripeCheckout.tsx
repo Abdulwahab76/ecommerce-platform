@@ -26,7 +26,7 @@ const StripeCheckout: React.FC = () => {
                     throw new Error('Order not found');
                 }
 
-                const orderData = orderSnap.data();
+                // const orderData = orderSnap.data();
 
                 // Here you would typically verify the payment with Stripe
                 // For now, we'll just simulate success

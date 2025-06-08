@@ -8,7 +8,7 @@ const SuccessPage: React.FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const searchParams = new URLSearchParams(location.search);
-    const sessionId = searchParams.get('session_id');
+    // const sessionId = searchParams.get('session_id');
     const orderId = location.state?.orderId;
 
     useEffect(() => {
