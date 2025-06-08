@@ -1,4 +1,3 @@
-// CheckoutPage.tsx
 import React, { useEffect, useState } from "react";
 import { useCartStore } from "../store/useCartStore";
 import { useNavigate } from "react-router-dom";
@@ -7,11 +6,9 @@ import { setDoc, doc, Timestamp } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { ChevronLeftIcon } from "lucide-react";
 import { updateProductStock } from "../hooks/contentfulManagement";
-
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-
 import {
     CountrySelect,
     StateSelect,
@@ -32,6 +29,7 @@ const schema = yup.object({
     city: yup.string().required("City is required"),
     address1: yup.string().required("Address is required"),
     zip: yup.string().required("ZIP Code is required"),
+    paymentMethod: yup.string().required("Payment method is required"),
 });
 
 type FormData = yup.InferType<typeof schema>;
@@ -52,10 +50,10 @@ const CheckoutPage: React.FC = () => {
     const [country, setCountry] = useState<any>(null);
     const [state, setState] = useState<any>(null);
     const [city, setCity] = useState<any>(null);
+    const [paymentMethod, setPaymentMethod] = useState<string>("");
 
     const {
         register,
-
         handleSubmit,
         setValue,
         formState: { errors, isValid },
@@ -63,7 +61,6 @@ const CheckoutPage: React.FC = () => {
         resolver: yupResolver(schema),
         mode: "onChange",
     });
-
 
     useEffect(() => {
         const auth = getAuth();
@@ -99,12 +96,15 @@ const CheckoutPage: React.FC = () => {
 
         setLoading(true);
         try {
+            const orderId = user.uid + "_" + Date.now();
+
             const inventoryUpdates = cart.map((item) =>
                 updateProductStock(item.id, item.inStock - item.quantity)
             );
             await Promise.all(inventoryUpdates);
 
-            await setDoc(doc(db, "orders", user.uid + "_" + Date.now()), {
+            // Save order in Firestore
+            await setDoc(doc(db, "orders", orderId), {
                 ...data,
                 items: cart.map(
                     ({ id, name, quantity, discountedPrice, image, costPrice }) => ({
@@ -119,10 +119,27 @@ const CheckoutPage: React.FC = () => {
                 total,
                 userId: user.uid,
                 createdAt: Timestamp.now(),
+                paymentMethod: data.paymentMethod,
             });
 
             clearCart();
-            navigate("/success");
+
+            if (data.paymentMethod === "stripe") {
+                const res = await fetch("/api/create-checkout-session", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        items: cart,
+                        successUrl: `${window.location.origin}/success`,
+                        cancelUrl: `${window.location.origin}/checkout`,
+                    }),
+                });
+
+                const { url } = await res.json();
+                window.location.href = url;
+            } else {
+                navigate("/success");
+            }
         } catch (err) {
             console.error("Order Error:", err);
             alert("Failed to place order. " + (err as Error).message);
@@ -130,6 +147,7 @@ const CheckoutPage: React.FC = () => {
             setLoading(false);
         }
     };
+
 
     return (
         <div className="px-3 md:px-20">
@@ -146,15 +164,13 @@ const CheckoutPage: React.FC = () => {
                 <div className="grid md:grid-cols-2 gap-8">
                     {/* Checkout Form */}
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
+                        {/* Existing form fields */}
                         <input
                             {...register("name")}
                             placeholder="Full Name"
-                            className={`w-full p-3 border rounded-lg ${errors.name ? "border-red-500" : ""
-                                }`}
+                            className={`w-full p-3 border rounded-lg ${errors.name ? "border-red-500" : ""}`}
                         />
-                        {errors.name && (
-                            <p className="text-red-600 text-sm">{errors.name.message}</p>
-                        )}
+                        {errors.name && <p className="text-red-600 text-sm">{errors.name.message}</p>}
 
                         <input
                             {...register("email")}
@@ -163,19 +179,15 @@ const CheckoutPage: React.FC = () => {
                             className="w-full p-3 border rounded-lg bg-gray-100"
                         />
 
-
                         <input
                             {...register("phone")}
-                            placeholder="phone number"
-                            className={`w-full p-3 border rounded-lg ${errors.phone ? "border-red-500" : ""
-                                }`}
+                            placeholder="Phone number"
+                            className={`w-full p-3 border rounded-lg ${errors.phone ? "border-red-500" : ""}`}
                         />
-                        {errors.phone && (
-                            <p className="text-red-600 text-sm">{errors.phone.message}</p>
-                        )}
+                        {errors.phone && <p className="text-red-600 text-sm">{errors.phone.message}</p>}
 
+                        {/* Country, State, City selects */}
                         <div>
-
                             <CountrySelect
                                 onChange={(c) => {
                                     setCountry(c);
@@ -184,21 +196,16 @@ const CheckoutPage: React.FC = () => {
                                     setCity(null);
                                     setValue("state", "");
                                     setValue("city", "");
-
                                 }}
                                 placeHolder="Select Country"
                                 defaultValue={country}
                                 containerClassName="mb-2"
-                                inputClassName={`w-full p-3 border rounded-lg ${errors.country ? "border-red-500" : ""
-                                    }`}
+                                inputClassName={`w-full p-3 border rounded-lg ${errors.country ? "border-red-500" : ""}`}
                             />
-                            {errors.country && (
-                                <p className="text-red-600 text-sm">{errors.country.message}</p>
-                            )}
+                            {errors.country && <p className="text-red-600 text-sm">{errors.country.message}</p>}
                         </div>
 
                         <div>
-
                             <StateSelect
                                 countryid={country?.id}
                                 onChange={(s) => {
@@ -210,16 +217,12 @@ const CheckoutPage: React.FC = () => {
                                 placeHolder="Select State"
                                 defaultValue={state}
                                 containerClassName="mb-2"
-                                inputClassName={`w-full p-3 border rounded-lg ${errors.state ? "border-red-500" : ""
-                                    }`}
+                                inputClassName={`w-full p-3 border rounded-lg ${errors.state ? "border-red-500" : ""}`}
                             />
-                            {errors.state && (
-                                <p className="text-red-600 text-sm">{errors.state.message}</p>
-                            )}
+                            {errors.state && <p className="text-red-600 text-sm">{errors.state.message}</p>}
                         </div>
 
                         <div>
-
                             <CitySelect
                                 countryid={country?.id}
                                 stateid={state?.id}
@@ -230,38 +233,61 @@ const CheckoutPage: React.FC = () => {
                                 placeHolder="Select City"
                                 defaultValue={city}
                                 containerClassName="mb-2"
-                                inputClassName={`w-full p-3 border rounded-lg ${errors.city ? "border-red-500" : ""
-                                    }`}
+                                inputClassName={`w-full p-3 border rounded-lg ${errors.city ? "border-red-500" : ""}`}
                             />
-                            {errors.city && (
-                                <p className="text-red-600 text-sm">{errors.city.message}</p>
-                            )}
+                            {errors.city && <p className="text-red-600 text-sm">{errors.city.message}</p>}
                         </div>
 
                         <input
                             {...register("address1")}
                             placeholder="Address"
-                            className={`w-full p-3 border rounded-lg ${errors.address1 ? "border-red-500" : ""
-                                }`}
+                            className={`w-full p-3 border rounded-lg ${errors.address1 ? "border-red-500" : ""}`}
                         />
-                        {errors.address1 && (
-                            <p className="text-red-600 text-sm">{errors.address1.message}</p>
-                        )}
+                        {errors.address1 && <p className="text-red-600 text-sm">{errors.address1.message}</p>}
 
                         <input
                             {...register("zip")}
                             placeholder="ZIP Code"
-                            className={`w-full p-3 border rounded-lg ${errors.zip ? "border-red-500" : ""
-                                }`}
+                            className={`w-full p-3 border rounded-lg ${errors.zip ? "border-red-500" : ""}`}
                         />
-                        {errors.zip && (
-                            <p className="text-red-600 text-sm">{errors.zip.message}</p>
-                        )}
+                        {errors.zip && <p className="text-red-600 text-sm">{errors.zip.message}</p>}
+
+                        {/* Payment Method Selection */}
+                        <div className="space-y-4">
+                            <label className="block text-lg font-semibold">Payment Method</label>
+                            <div className="flex items-center space-x-4">
+                                <input
+                                    type="radio"
+                                    id="stripe"
+                                    value="stripe"
+                                    {...register("paymentMethod")}
+                                    checked={paymentMethod === "stripe"}
+                                    onChange={() => setPaymentMethod("stripe")}
+                                    className="h-5 w-5"
+                                />
+                                <label htmlFor="stripe" className="text-sm">Stripe</label>
+
+                                <input
+                                    type="radio"
+                                    id="cod"
+                                    value="cod"
+                                    {...register("paymentMethod")}
+                                    checked={paymentMethod === "cod"}
+                                    onChange={() => setPaymentMethod("cod")}
+                                    className="h-5 w-5"
+                                />
+                                <label htmlFor="cod" className="text-sm">Cash on Delivery</label>
+                            </div>
+                            {errors.paymentMethod && (
+                                <p className="text-red-600 text-sm">{errors.paymentMethod.message}</p>
+                            )}
+                        </div>
 
                         <button
                             type="submit"
                             disabled={loading || !isValid}
-                            className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition disabled:opacity-50"
+                            className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800
+::contentReference[oaicite:0]{index=0}transition disabled:opacity-50"
                         >
                             {loading ? "Placing Order..." : "Place Order"}
                         </button>
@@ -318,3 +344,5 @@ const CheckoutPage: React.FC = () => {
 };
 
 export default CheckoutPage;
+
+
