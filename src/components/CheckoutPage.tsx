@@ -16,6 +16,8 @@ import {
 } from "react-country-state-city";
 import "react-country-state-city/dist/react-country-state-city.css";
 import type { City, Country, State } from "react-country-state-city/dist/esm/types";
+import { loadStripe } from '@stripe/stripe-js';
+const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY!);
 
 const schema = yup.object({
     name: yup.string().required("Name is required"),
@@ -61,7 +63,52 @@ const CheckoutPage: React.FC = () => {
         resolver: yupResolver(schema),
         mode: "onChange",
     });
+    // Add this function inside your component
+    const handleStripeCheckout = async (orderId: string) => {
+        try {
+            const stripe = await stripePromise;
 
+            const response = await fetch('/api/checkout-session', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    items: cart.map(item => ({
+                        id: item.id,
+                        name: item.name,
+                        discountedPrice: item.discountedPrice,
+                        quantity: item.quantity,
+                        image: item.image,
+                    })),
+                    success_url: `${window.location.origin}/success?session_id={CHECKOUT_SESSION_ID}&order_id=${orderId}`,
+                    cancel_url: `${window.location.origin}/checkout?order_id=${orderId}`,
+                    orderData: {
+                        orderId,
+                        userId: user?.uid,
+                    },
+                }),
+            });
+
+            const session = await response.json();
+
+            if (session.error) {
+                throw new Error(session.error);
+            }
+
+            // Actually use the stripe object to redirect
+            const { error } = await stripe!.redirectToCheckout({
+                sessionId: session.id
+            });
+
+            if (error) {
+                throw error;
+            }
+        } catch (error) {
+            console.error('Stripe checkout error:', error);
+            alert(`Failed to initiate payment: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    };
     useEffect(() => {
         const auth = getAuth();
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -103,7 +150,7 @@ const CheckoutPage: React.FC = () => {
             );
             await Promise.all(inventoryUpdates);
 
-            await setDoc(doc(db, "orders", orderId), {
+            const orderData = {
                 ...data,
                 items: cart.map(
                     ({ id, name, quantity, discountedPrice, image, costPrice }) => ({
@@ -119,14 +166,14 @@ const CheckoutPage: React.FC = () => {
                 userId: user.uid,
                 createdAt: Timestamp.now(),
                 paymentMethod: data.paymentMethod,
-            });
+                status: data.paymentMethod === 'stripe' ? 'pending' : 'processing',
+            };
 
-            clearCart();
+            await setDoc(doc(db, "orders", orderId), orderData);
+
             if (data.paymentMethod === "stripe") {
-                // Redirect to Stripe checkout
-                navigate(`/checkout/stripe/${orderId}`);
+                await handleStripeCheckout(orderId);
             } else {
-                // Redirect to COD success page
                 navigate("/success");
             }
         } catch (err) {

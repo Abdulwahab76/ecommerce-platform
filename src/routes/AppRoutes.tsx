@@ -12,6 +12,7 @@ import CategoryPage from "../components/pages/Home/CategoryPage";
 import CheckoutPage from "../components/CheckoutPage";
 import SuccessPage from "../components/SuccessPage";
 import ProductFilterPage from "../components/ProductFilterPage";
+import StripeCheckout from "../components/StripeCheckout";
 
 const AppRoutes: React.FC = () => {
     const { user, isAdmin } = useAuth();
@@ -58,6 +59,7 @@ const AppRoutes: React.FC = () => {
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/success" element={<SuccessPage />} />
             <Route path="/shop" element={<ProductFilterPage />} />
+            <Route path="/checkout/stripe/:orderId" element={<StripeCheckout />} />
 
             <Route path="/category/:slug" element={<CategoryPage />} />
             <Route path="/verify-email" element={<VerifyEmail />} />

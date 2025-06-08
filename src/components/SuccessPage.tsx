@@ -1,26 +1,58 @@
-import { CircleCheckBig } from "lucide-react";
-import { Link } from "react-router-dom";
+import React, { useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { doc, Timestamp, updateDoc } from 'firebase/firestore';
+import { db } from '../services/firebase';
+import { getAuth } from 'firebase/auth';
 
 const SuccessPage: React.FC = () => {
+    const location = useLocation();
+    const navigate = useNavigate();
+    const searchParams = new URLSearchParams(location.search);
+    const sessionId = searchParams.get('session_id');
+    const orderId = location.state?.orderId;
+
+    useEffect(() => {
+        const updateOrderStatus = async () => {
+            try {
+                const auth = getAuth();
+                const user = auth.currentUser;
+                if (!user) {
+                    navigate('/login');
+                    return;
+                }
+
+                if (orderId) {
+                    const orderRef = doc(db, 'orders', orderId);
+                    await updateDoc(orderRef, {
+                        status: 'completed',
+                        paymentStatus: 'paid',
+                        updatedAt: Timestamp.now(),
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to update order status:', error);
+            }
+        };
+
+        updateOrderStatus();
+    }, [orderId, navigate]);
+
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 px-4">
-            <div className="bg-white shadow-lg rounded-lg p-10 max-w-md text-center">
-                <div className="mb-6 flex justify-center items-center">
-                    <CircleCheckBig size={40} className="text-gray-800" />
-                </div>
-                <h1 className="text-3xl font-extrabold text-gray-800 mb-4">
-                    Order Placed Successfully!
-                </h1>
-                <p className="text-gray-600 mb-8">
-                    Thank you for your purchase. Your order is being processed and you'll
-                    receive a confirmation email shortly.
-                </p>
-                <Link
-                    to="/"
-                    className="inline-block bg-gray-800 text-white font-semibold px-6 py-3 rounded-lg shadow-md hover:bg-white hover:text-black transition"
+        <div className="flex justify-center items-center h-screen">
+            <div className="text-center max-w-md p-6 bg-white rounded-lg shadow-md">
+                <h2 className="text-2xl font-semibold mb-4">Order Confirmed!</h2>
+                <p className="mb-4">Thank you for your purchase.</p>
+                {orderId && (
+                    <p className="text-sm text-gray-600 mb-4">
+                        Your order ID: <span className="font-mono">{orderId}</span>
+                    </p>
+                )}
+                <button
+                    onClick={() => navigate('/')}
+                    className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition"
                 >
                     Continue Shopping
-                </Link>
+                </button>
             </div>
         </div>
     );
