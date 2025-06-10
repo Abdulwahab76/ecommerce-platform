@@ -12,6 +12,7 @@ import CategoryPage from "../components/pages/Home/CategoryPage";
 import CheckoutPage from "../components/CheckoutPage";
 import SuccessPage from "../components/SuccessPage";
 import ProductFilterPage from "../components/ProductFilterPage";
+import ForgotPassword from "../components/ForgotPassword";
 
 const AppRoutes: React.FC = () => {
     const { user, isAdmin } = useAuth();
@@ -36,6 +37,7 @@ const AppRoutes: React.FC = () => {
                 path="/register"
                 element={!user ? <Register /> : <Navigate to="/" replace />}
             />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
 
             {/* Protected Routes */}
             <Route

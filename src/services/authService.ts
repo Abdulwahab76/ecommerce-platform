@@ -5,7 +5,7 @@ import {
     updateProfile,
     type User,
     getIdToken,
-    sendEmailVerification,
+    sendEmailVerification, sendPasswordResetEmail, getAuth
 } from "firebase/auth";
 import { auth } from "./firebase";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
@@ -80,4 +80,10 @@ export const isAdmin = (email: string | null | undefined): boolean => {
 };
 export const sendVerificationEmail = async (user: User) => {
     return sendEmailVerification(user);
+};
+
+
+export const resetPassword = async (email: string): Promise<void> => {
+    const auth = getAuth();
+    await sendPasswordResetEmail(auth, email);
 };
