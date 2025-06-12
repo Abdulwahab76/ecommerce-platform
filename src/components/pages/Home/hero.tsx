@@ -6,7 +6,7 @@ const Hero = () => {
     const isMobile = useMediaQuery('(min-width: 650px)');
     return (
         <section
-            className="w-full  h-[calc(100vh_-_400px)] md:h-screen flex items-center bg-gray-200 bg-none "
+            className="w-full py-5 min-h-[calc(100vh_-_400px)] md:h-screen flex items-center bg-gray-200 bg-none "
             style={{
                 backgroundImage: isMobile ? `url(${Bg})` : '',
                 backgroundSize: 'cover',
