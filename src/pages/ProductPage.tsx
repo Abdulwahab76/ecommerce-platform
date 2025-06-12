@@ -124,17 +124,23 @@ const ProductPage: React.FC = () => {
                         <button
                             onClick={() => addToCart(product)}
                             disabled={isOutOfStock}
-                            className={`px-6 py-2 hover:bg-white hover:border-gray-800 border hover:text-black transition-colors cursor-pointer text-white rounded-lg bg-gray-800 ${isOutOfStock ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            className={`px-6 py-2 border transition-colors text-white rounded-lg bg-gray-800 
+        ${isOutOfStock ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} 
+        hover:bg-white hover:border-gray-800 hover:text-black 
+        focus:ring-2 focus:ring-gray-400 active:scale-95 active:bg-gray-700`}
                         >
                             {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
                         </button>
 
                         <button
                             onClick={() => buyNow(product)}
-                            className="px-6 py-2 hover:bg-white hover:border-gray-800 border hover:text-black transition-colors cursor-pointer text-white rounded-lg bg-gray-800  "
+                            className="px-6 py-2 border transition-colors text-white rounded-lg bg-gray-800 
+        cursor-pointer hover:bg-white hover:border-gray-800 hover:text-black 
+        focus:ring-2 focus:ring-gray-400 active:scale-95 active:bg-gray-700"
                         >
                             Buy Now
                         </button>
+
                     </div>
                 </div>
             </div>

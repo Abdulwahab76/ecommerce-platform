@@ -96,11 +96,16 @@ const Login: React.FC = () => {
                         <input
                             type="email"
                             id="email"
+                            placeholder="Email"
+                            aria-invalid={errors.email ? "true" : "false"}
+                            aria-describedby={errors.email ? "email-error" : undefined}
                             {...register("email", { required: "Email is required" })}
+                            autoComplete="email"
+
                             className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
 
-                        {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
+                        {errors.email && <p id="email-error" className="text-red-500 text-sm" role="alert" aria-live="assertive">{errors.email.message}</p>}
                     </div>
 
                     {/* Password */}
@@ -110,23 +115,29 @@ const Login: React.FC = () => {
                         </label>
                         <input
                             type="password"
+                            autoComplete="current-password"
+                            placeholder="Password"
+
                             id="password"
                             {...register("password", { required: "Password is required" })}
 
                             className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
-                        {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
+                        <Link to="/forgot-password" className="text-sm text-blue-500 hover:underline self-end">
+                            Forgot Password?
+                        </Link>
+                        {errors.password && <p className="text-red-500 text-sm" role="alert" aria-live="assertive">{errors.password.message}</p>}
                     </div>
 
                     {/* Submit Button */}
-                    <button
+                    <button aria-label="Submit login form"
                         type="submit"
                         disabled={loading}
                         className={`w-full flex cursor-pointer justify-center items-center bg-gray-700 hover:bg-gray-600 text-white p-3 rounded-md shadow-md transition duration-200 ${loading ? "opacity-50 cursor-not-allowed" : ""
                             }`}
                     >
                         {loading && (
-                            <span className="loader ease-linear rounded-full border-2 border-t-2 border-white h-5 w-5 animate-spin mr-2"></span>
+                            <span aria-live="polite" role="status" className="loader ease-linear rounded-full border-2 border-t-2 border-white h-5 w-5 animate-spin mr-2"></span>
                         )}
                         {loading ? "Logging in..." : "Login"}
                     </button>
@@ -139,9 +150,7 @@ const Login: React.FC = () => {
                         </Link>
                     </p>
 
-                    <Link to="/forgot-password" className="text-sm text-blue-500 hover:underline self-end">
-                        Forgot Password?
-                    </Link>
+
                 </form>
             </div>
         </div>

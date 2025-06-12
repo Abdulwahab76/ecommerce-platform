@@ -109,24 +109,53 @@ const Register: React.FC = () => {
                 <form
                     onSubmit={handleSubmit(onSubmit)}
                     className="w-full max-w-md bg-white p-8 rounded-lg shadow-xl space-y-5"
+                    noValidate
+                    aria-labelledby="register-title"
                 >
-                    <h2 className="text-3xl font-bold text-gray-800 text-center">Create Account</h2>
+                    <h2
+                        id="register-title"
+                        className="text-3xl font-bold text-gray-800 text-center"
+                    >
+                        Create Account
+                    </h2>
 
                     {/* Full Name */}
                     <div className="flex flex-col">
-                        <label className="text-sm text-gray-700 font-medium">Full Name</label>
+                        <label htmlFor="fullName" className="text-sm text-gray-700 font-medium">
+                            Full Name
+                        </label>
                         <input
+                            id="fullName"
+                            autoComplete="name"
+                            aria-invalid={errors.fullName ? "true" : "false"}
+                            aria-describedby={errors.fullName ? "fullName-error" : undefined}
                             {...register("fullName", { required: "Full name is required" })}
                             className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="Enter your full name"
                         />
-                        {errors.fullName && <p className="text-red-500 text-sm">{errors.fullName.message}</p>}
+                        {errors.fullName && (
+                            <p
+                                id="fullName-error"
+                                className="text-red-500 text-sm"
+                                role="alert"
+                                aria-live="assertive"
+                            >
+                                {errors.fullName.message}
+                            </p>
+                        )}
                     </div>
 
                     {/* Phone */}
                     <div className="flex flex-col">
-                        <label className="text-sm text-gray-700 font-medium">Phone</label>
+                        <label htmlFor="phone" className="text-sm text-gray-700 font-medium">
+                            Phone
+                        </label>
                         <input
+                            id="phone"
+                            type="tel"
+                            autoComplete="tel"
+                            aria-invalid={errors.phone ? "true" : "false"}
+                            aria-describedby={errors.phone ? "phone-error" : undefined}
                             {...register("phone", {
                                 required: "Phone number is required",
                                 pattern: {
@@ -137,62 +166,124 @@ const Register: React.FC = () => {
                             className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="Enter your phone number"
                         />
-                        {errors.phone && <p className="text-red-500 text-sm">{errors.phone.message}</p>}
+                        {errors.phone && (
+                            <p
+                                id="phone-error"
+                                className="text-red-500 text-sm"
+                                role="alert"
+                                aria-live="assertive"
+                            >
+                                {errors.phone.message}
+                            </p>
+                        )}
                     </div>
 
                     {/* Email */}
                     <div className="flex flex-col">
-                        <label className="text-sm text-gray-700 font-medium">Email</label>
+                        <label htmlFor="email" className="text-sm text-gray-700 font-medium">
+                            Email
+                        </label>
                         <input
-                            {...register("email", { required: "Email is required" })}
+                            id="email"
                             type="email"
+                            autoComplete="email"
+                            aria-invalid={errors.email ? "true" : "false"}
+                            aria-describedby={errors.email ? "email-error" : undefined}
+                            {...register("email", { required: "Email is required" })}
                             className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="Enter your email"
                         />
-                        {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
+                        {errors.email && (
+                            <p
+                                id="email-error"
+                                className="text-red-500 text-sm"
+                                role="alert"
+                                aria-live="assertive"
+                            >
+                                {errors.email.message}
+                            </p>
+                        )}
                     </div>
 
                     {/* Password */}
                     <div className="flex flex-col">
-                        <label className="text-sm text-gray-700 font-medium">Password</label>
+                        <label htmlFor="password" className="text-sm text-gray-700 font-medium">
+                            Password
+                        </label>
                         <input
+                            id="password"
+                            type="password"
+                            autoComplete="new-password"
+                            aria-invalid={errors.password ? "true" : "false"}
+                            aria-describedby={errors.password ? "password-error" : undefined}
                             {...register("password", {
                                 required: "Password is required",
                                 minLength: { value: 6, message: "Minimum 6 characters" },
                             })}
-                            type="password"
                             className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="Enter your password"
                         />
-                        {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
+                        {errors.password && (
+                            <p
+                                id="password-error"
+                                className="text-red-500 text-sm"
+                                role="alert"
+                                aria-live="assertive"
+                            >
+                                {errors.password.message}
+                            </p>
+                        )}
                     </div>
 
                     {/* Confirm Password */}
                     <div className="flex flex-col">
-                        <label className="text-sm text-gray-700 font-medium">Confirm Password</label>
+                        <label htmlFor="confirmPassword" className="text-sm text-gray-700 font-medium">
+                            Confirm Password
+                        </label>
                         <input
+                            id="confirmPassword"
+                            type="password"
+                            autoComplete="new-password"
+                            aria-invalid={errors.confirmPassword ? "true" : "false"}
+                            aria-describedby={errors.confirmPassword ? "confirmPassword-error" : undefined}
                             {...register("confirmPassword", {
                                 required: "Please confirm your password",
                             })}
-                            type="password"
                             className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="Re-enter your password"
                         />
                         {errors.confirmPassword && (
-                            <p className="text-red-500 text-sm">{errors.confirmPassword.message}</p>
+                            <p
+                                id="confirmPassword-error"
+                                className="text-red-500 text-sm"
+                                role="alert"
+                                aria-live="assertive"
+                            >
+                                {errors.confirmPassword.message}
+                            </p>
                         )}
                     </div>
 
                     {/* Submit Button */}
                     <button
                         type="submit"
+                        aria-label="Submit registration form"
                         disabled={loading}
-                        className={`w-full cursor-pointer bg-gray-700 hover:bg-gray-600 text-white p-3 rounded transition-opacity duration-200 ${loading ? "opacity-50 cursor-not-allowed" : ""
-                            }`}
+                        aria-disabled={loading}
+                        className={`w-full flex justify-center items-center bg-gray-700 hover:bg-gray-600 text-white p-3 rounded transition-opacity duration-200 ${loading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                            } focus:outline-none focus:ring-2 focus:ring-gray-500`}
                     >
+                        {loading && (
+                            <span
+                                className="loader ease-linear rounded-full border-2 border-t-2 border-white h-5 w-5 animate-spin mr-2"
+                                role="status"
+                                aria-live="polite"
+                            ></span>
+                        )}
                         {loading ? "Registering..." : "Register"}
                     </button>
                 </form>
+
             </div>
         </div>
     );
