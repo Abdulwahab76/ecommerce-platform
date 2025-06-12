@@ -1,10 +1,16 @@
 import { X } from 'lucide-react';
 import { useCartStore } from '../store/useCartStore';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 
 export const CartDrawer = () => {
-    const { isOpen, toggleCart, cart, removeFromCart, increaseQty, decreaseQty, total } = useCartStore();
-
+    const { isOpen, toggleCart, cart, removeFromCart, increaseQty, decreaseQty, total, closeCart } = useCartStore();
+    const location = useLocation();
+    useEffect(() => {
+        if (isOpen) {
+            closeCart();
+        }
+    }, [location]);
     const isCartEmpty = cart.length === 0;
 
     return (
