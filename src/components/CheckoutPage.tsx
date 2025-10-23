@@ -114,7 +114,6 @@ const CheckoutPage: React.FC = () => {
 
     const [country, setCountry] = useState<any>(null);
     const [state, setState] = useState<any>(null);
-    const [city, setCity] = useState<any>(null);
 
     const {
         register,
@@ -159,7 +158,7 @@ const CheckoutPage: React.FC = () => {
     // 🟢 Save Order to Firebase
     const saveOrder = async (data: FormData) => {
         if (!validateStock()) return;
-
+        setLoading(true);
         try {
             const inventoryUpdates = cart.map((item) =>
                 updateProductStock(item.id, item.inStock - item.quantity)
@@ -186,6 +185,7 @@ const CheckoutPage: React.FC = () => {
 
             clearCart();
             navigate("/success");
+            setLoading(false)
         } catch (err) {
             alert("Order failed: " + (err as Error).message);
         }
@@ -242,7 +242,6 @@ const CheckoutPage: React.FC = () => {
                             countryid={country?.id}
                             stateid={state?.id}
                             onChange={(c) => {
-                                setCity(c);
                                 setValue("city", (c as City)?.name || "");
                             }}
                             placeHolder="Select City"
