@@ -31,7 +31,7 @@ const ProductFilterPage: React.FC = () => {
             <FilterSidebar filters={filters} setFilters={setFilters} />
 
             {/* Product Grid */}
-            <main className="w-3/4       ">
+            <main className="w-3/4 ">
                 <h2 className="text-xl font-bold mb-4">
                     Showing {filtered.length} {filtered.length === 1 ? "item" : "items"}
                 </h2>
@@ -39,7 +39,7 @@ const ProductFilterPage: React.FC = () => {
                 {loading ? (
                     <p>Loading...</p>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    <div className="flex flex-wrap gap-5">
                         {paginatedProducts.map((product) => (
                             <ProductCard {...product} key={product.id} />
                         ))}

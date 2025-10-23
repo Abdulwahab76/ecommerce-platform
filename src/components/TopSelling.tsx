@@ -116,7 +116,7 @@ const TopSellingProducts = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {topProducts.map((product) => (
-                    <div key={product.id} className="rounded-2xl min-w-[320px] p-10 hover:shadow-xl transition-shadow duration-300 ease-in-out cursor-pointer shadow-2xl relative">
+                    <div key={product.id} className="rounded-2xl w-72 p-10 hover:shadow-xl transition-shadow duration-300 ease-in-out cursor-pointer shadow-2xl relative">
                         <img
                             src={product.image}
                             alt={product.name}
